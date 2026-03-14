@@ -2,6 +2,13 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const TABS = [
   { id: "login", label: "Login" },
@@ -20,6 +27,7 @@ export default function LoginPage() {
   const [regEmail, setRegEmail] = useState("");
   const [regPassword, setRegPassword] = useState("");
   const [regConfirm, setRegConfirm] = useState("");
+  const [regUserType, setRegUserType] = useState("");
 
   // Forgot
   const [forgotEmail, setForgotEmail] = useState("");
@@ -32,7 +40,12 @@ export default function LoginPage() {
 
   const handleRegister = (e) => {
     e.preventDefault();
-    // TODO: authService.register({ name: regName, email: regEmail, password: regPassword })
+    // TODO: authService.register({
+    //   name: regName,
+    //   email: regEmail,
+    //   password: regPassword,
+    //   userType: regUserType,
+    // })
   };
 
   const handleForgot = (e) => {
@@ -154,6 +167,23 @@ export default function LoginPage() {
                 required
               />
             </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">
+                Select the kind of user
+              </label>
+              <Select value={regUserType} onValueChange={setRegUserType}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select user type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="user">User</SelectItem>
+                  <SelectItem value="chw">CHW</SelectItem>
+                  <SelectItem value="supervisor">Supervisor</SelectItem>
+                  <SelectItem value="facility">Facility</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <div className="space-y-1.5">
               <label className="text-sm font-medium">Email</label>
               <Input
@@ -184,6 +214,7 @@ export default function LoginPage() {
                 required
               />
             </div>
+
             <Button type="submit" className="w-full mt-2">
               Create Account
             </Button>
