@@ -1,6 +1,27 @@
 // get/ api/alerts
-// src/routes/alerts.js
 import express from 'express';
+import Alert from '../models/Alert.js';
+
 const router = express.Router();
-router.get('/', (req, res) => res.json({ alerts: [] }));
+
+// GET /api/alerts
+router.get('/', async (req, res) => {
+  try {
+    const alerts = await Alert.find()
+      .populate('facility')
+      .populate({
+        paths: 'sessions',
+        populate: [
+          { path: 'patient'},
+          { path: 'chp'}
+        ]
+      })
+      .sort({ cretedAt: -1});
+
+      res.json({ success: true, alerts});
+
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message})
+  }
+});
 export default router;
