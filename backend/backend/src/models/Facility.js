@@ -7,8 +7,6 @@ const FacilitySchema = new mongoose.Schema({
   county: { type: String },
   ward: { type: String },
   phone: { type: String },
-  latitude: { type: Number },
-  longitude: { type: Number },
 });
 
 export default mongoose.model("Facility", FacilitySchema);
