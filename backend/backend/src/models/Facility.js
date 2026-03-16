@@ -1,5 +1,5 @@
 // src/models/Facility.js
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const FacilitySchema = new mongoose.Schema({
   name: { type: String, required: true },
@@ -11,4 +11,4 @@ const FacilitySchema = new mongoose.Schema({
   longitude: { type: Number },
 });
 
-module.exports = mongoose.model("Facility", FacilitySchema);
+export default mongoose.model("Facility", FacilitySchema);
