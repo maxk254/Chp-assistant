@@ -1,4 +1,4 @@
-const mongoose = require('mongoose');
+import mongoose from "mongoose";
 
 // sesition data to save to mnogdb
 const SessionSchema = new mongoose.Schema({
@@ -13,5 +13,5 @@ const SessionSchema = new mongoose.Schema({
   chwInstructions:   { type: String },
 }, { timestamps: true});
 
-module.exports = mongoose.model("Session", SessionSchema);
+export default mongoose.model("Session", SessionSchema);
 

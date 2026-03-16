@@ -1,6 +1,5 @@
 // conecting with the mongoose
-const mongoose = require('mongoose');
-
+import mongoose  from "mongoose";
 // patients schema/ data to be saved in the mongodb 
 const PatientSchema = new mongoose.Schema({
   name:      { type: String, required: true },
@@ -11,4 +10,4 @@ const PatientSchema = new mongoose.Schema({
   county:    { type: String },
 }, { timestamps: true });
 
-module.exports = mongoose.model('Patient', PatientSchema);
+export default mongoose.model('Patient', PatientSchema);

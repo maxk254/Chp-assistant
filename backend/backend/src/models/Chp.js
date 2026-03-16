@@ -1,5 +1,5 @@
 
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 // CHP data the we get from frontend and is saved to the database
 const CHPSchema = new mongoose.Schema(
@@ -13,4 +13,4 @@ const CHPSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-module.exports = mongoose.model("CHP", CHPSchema);
+export default mongoose.model("CHP", CHPSchema);
