@@ -15,6 +15,7 @@ const TABS = [
   { id: "register", label: "Create Account" },
 ];
 
+//  to be completed later after backend implementation is done.
 export default function LoginPage() {
   const [activeTab, setActiveTab] = useState("login");
 
