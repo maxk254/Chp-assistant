@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Activity,
   Users,
@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   Clock3,
   AlertTriangle,
+  ChevronDown,
 } from "lucide-react";
 
 const metricBase =
@@ -69,14 +70,18 @@ const getInitials = (name = "") =>
     .join("");
 
 const Facility = ({ patients = [] }) => {
+  const [patientStatuses, setPatientStatuses] = useState({});
+  const [openDropdown, setOpenDropdown] = useState(null);
+
   const incoming =
     patients.length > 0
       ? patients.map((p, i) => ({
           id: p.id || i + 1,
           fullName: p.fullName || "Unknown Patient",
           reason: p.diagnosis || "General referral",
+          symptoms: p.symptoms || "No symptoms recorded",
           chwName: p.chwName || "CHW",
-          age: p.timestamp || "Recently",
+          referralTime: p.timestamp || "Recently",
           priority: p.status || "normal",
         }))
       : [
@@ -84,16 +89,18 @@ const Facility = ({ patients = [] }) => {
             id: 1,
             fullName: "Samuel Karanja",
             reason: "Diabetes complication",
+            symptoms: "Fatigue, increased thirst, blurred vision",
             chwName: "Jane Wambui",
-            age: "2 days ago",
+            referralTime: "2 days ago",
             priority: "urgent",
           },
           {
             id: 2,
             fullName: "Mercy Njeri",
             reason: "Post-partum follow-up",
+            symptoms: "Mild dizziness, normal vitals",
             chwName: "David Kariuki",
-            age: "Today",
+            referralTime: "Today",
             priority: "high",
           },
         ];
@@ -154,7 +161,7 @@ const Facility = ({ patients = [] }) => {
               Review and accept pending referrals
             </p>
           </div>
-          <button className="bg-gradient-to-r from-emerald-500 to-teal-400 hover:to-emerald-400 text-white font-bold py-3 px-5 rounded-2xl shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 transition-all flex items-center gap-2 w-fit">
+          <button className="bg-linear-to-r from-emerald-500 to-teal-400 hover:to-emerald-400 text-white font-bold py-3 px-5 rounded-2xl shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 transition-all flex items-center gap-2 w-fit">
             <CheckCircle2 size={18} />
             <span className="uppercase tracking-widest text-xs">
               Accept All Pending
@@ -168,12 +175,12 @@ const Facility = ({ patients = [] }) => {
               key={referral.id}
               className="bg-slate-900/50 border border-slate-700 rounded-xl p-4 hover:border-teal-400/30 transition"
             >
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-teal-400/10 border border-teal-400/20 text-teal-300 text-sm font-bold flex items-center justify-center">
+              <div className="flex items-start justify-between gap-3 mb-4">
+                <div className="flex items-start gap-3 flex-1">
+                  <div className="w-9 h-9 rounded-lg bg-teal-400/10 border border-teal-400/20 text-teal-300 text-sm font-bold flex items-center justify-center shrink-0">
                     {getInitials(referral.fullName)}
                   </div>
-                  <div>
+                  <div className="flex-1 min-w-0">
                     <p className="text-white font-semibold">
                       {referral.fullName}
                     </p>
@@ -185,12 +192,62 @@ const Facility = ({ patients = [] }) => {
                       </span>
                       <span className="inline-flex items-center gap-1">
                         <Clock3 size={12} className="text-teal-400" />
-                        {referral.age}
+                        {referral.referralTime}
                       </span>
                     </div>
                   </div>
                 </div>
                 <PriorityBadge priority={referral.priority} />
+              </div>
+
+              <div className="bg-slate-800/50 rounded-lg p-3 mb-4">
+                <p className="text-slate-400 text-xs font-semibold mb-1">
+                  SYMPTOMS
+                </p>
+                <p className="text-slate-300 text-sm">{referral.symptoms}</p>
+              </div>
+
+              <div className="relative">
+                <button
+                  onClick={() =>
+                    setOpenDropdown(
+                      openDropdown === referral.id ? null : referral.id,
+                    )
+                  }
+                  className="w-full bg-teal-500/10 border border-teal-400/30 text-teal-400 hover:bg-teal-500/20 transition font-semibold py-2 px-3 rounded-lg text-sm flex items-center justify-between"
+                >
+                  <span>
+                    {patientStatuses[referral.id]
+                      ? patientStatuses[referral.id].toUpperCase()
+                      : "UPDATE STATUS"}
+                  </span>
+                  <ChevronDown
+                    size={16}
+                    className={`transition-transform ${
+                      openDropdown === referral.id ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+
+                {openDropdown === referral.id && (
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-slate-800 border border-slate-700 rounded-lg shadow-lg z-10">
+                    {["Arrived", "Treated", "Admitted"].map((status) => (
+                      <button
+                        key={status}
+                        onClick={() => {
+                          setPatientStatuses({
+                            ...patientStatuses,
+                            [referral.id]: status,
+                          });
+                          setOpenDropdown(null);
+                        }}
+                        className="w-full px-4 py-2.5 text-left text-white hover:bg-teal-500/20 transition text-sm border-b border-slate-700 last:border-b-0"
+                      >
+                        {status}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           ))}
