@@ -1,48 +1,52 @@
-
 import React, { useState } from 'react';
-import Sidebar from './components/ui/sidebar';
-import TopBar from './components/topbar';
-import CHW from './components/ui/CHW';
-import Supervisor from './components/ui/Supervisor';
-import Facility from './components/ui/Facility';
-import LiveMap from './components/ui/livemap';
-import Settings from './components/ui/Settings';
+import Sidebar from './components/Sidebar';
+import TopBar from './components/TopBar';
+import CHW from './components/CHW';
+import SupervisorDashboard from './components/SupervisorDashboard';
+import FacilityDashboard from './components/FacilityDashboard';
+import LiveMap from './components/LiveMap';
 
 function App() {
   const [currentTab, setCurrentTab] = useState('chw');
+  const [patientData, setPatientData] = useState(null);
+  const [patients, setPatients] = useState([]);
 
   const handleAnalyze = (data) => {
-    console.log('Analysis data:', data);
+    setPatientData(data);
+  };
+
+  const handleSavePatient = (data) => {
+    // Add patient to the list with a random status for demo purposes if not present
+    const newPatient = {
+      ...data,
+      id: Date.now(),
+      status: data.status || (Math.random() > 0.5 ? 'HIGH' : 'LOW')
+    };
+    setPatients([newPatient, ...patients]);
   };
 
   const renderContent = () => {
-    try {
-      switch (currentTab) {
-        case 'chw':
-          return <CHW onAnalyze={handleAnalyze} />;
-        case 'supervisor':
-          return <Supervisor />;
-        case 'facility':
-          return <Facility />;
-        case 'map':
-          return <LiveMap />;
-        case 'settings':
-          return <Settings />;
-        default:
-          return <CHW onAnalyze={handleAnalyze} />;
-      }
-    } catch (error) {
-      console.error('Render error:', error);
-      return <div className="text-white p-4">Error loading dashboard</div>;
+    switch (currentTab) {
+      case 'chw':
+        return <CHW onAnalyze={handleAnalyze} onSave={handleSavePatient} patients={patients} />;
+      case 'supervisor':
+        return <SupervisorDashboard patients={patients} />;
+      case 'facility':
+        return <FacilityDashboard />;
+      case 'live':
+        return <LiveMap />;
+      default:
+        return <CHW onAnalyze={handleAnalyze} onSave={handleSavePatient} patients={patients} />;
     }
   };
 
   return (
-    <div className="w-full h-screen flex bg-dark-900">
+    <div className="flex min-h-screen bg-dark-900 overflow-x-hidden">
       <Sidebar currentTab={currentTab} setTab={setCurrentTab} />
-      <main className="flex-1 flex flex-col overflow-hidden">
+      
+      <main className="flex-1 ml-20">
         <TopBar />
-        <div className="flex-1 overflow-y-auto">
+        <div className="min-h-[calc(100vh-5rem)]">
           {renderContent()}
         </div>
       </main>

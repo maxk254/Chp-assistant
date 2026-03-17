@@ -1,8 +1,38 @@
 import React, { useState } from 'react';
 import { 
   User, MapPin, Calendar, ClipboardList, Activity, 
-  ChevronRight, AlertCircle, Clock
+  ChevronRight, AlertCircle, Clock, AlertTriangle, Stethoscope, History
 } from 'lucide-react';
+
+// Kenyan Wards Data
+const KENYAN_WARDS = [
+  { value: 'Dagoretti', label: 'Dagoretti - Nairobi' },
+  { value: 'Embakasi', label: 'Embakasi - Nairobi' },
+  { value: 'Kamukunji', label: 'Kamukunji - Nairobi' },
+  { value: 'Kasarani', label: 'Kasarani - Nairobi' },
+  { value: 'Kibera', label: 'Kibera - Nairobi' },
+  { value: 'Makadara', label: 'Makadara - Nairobi' },
+  { value: 'Mathare', label: 'Mathare - Nairobi' },
+  { value: 'Ruaraka', label: 'Ruaraka - Nairobi' },
+  { value: 'Westlands', label: 'Westlands - Nairobi' },
+  { value: 'Karen', label: 'Karen - Nairobi' },
+  { value: 'Kilimani', label: 'Kilimani - Nairobi' },
+  { value: 'Nyaya', label: 'Nyaya - Nairobi' },
+  { value: 'Starehe', label: 'Starehe - Nairobi' },
+  { value: 'Langata', label: 'Langata - Nairobi' },
+  { value: 'IlalaWest', label: 'Ilala West - Mombasa' },
+  { value: 'MombasaWest', label: 'Mombasa West - Mombasa' },
+  { value: 'MombasaEast', label: 'Mombasa East - Mombasa' },
+  { value: 'KisauniWest', label: 'Kisauni West - Mombasa' },
+  { value: 'Nyali', label: 'Nyali - Mombasa' },
+  { value: 'Jomvu', label: 'Jomvu - Mombasa' },
+  { value: 'KigamboniWest', label: 'Kigamboni West - Mombasa' },
+  { value: 'Kisauni', label: 'Kisauni - Mombasa' },
+  { value: 'KadhadhWest', label: 'Khadhadh West - Kisumu' },
+  { value: 'CentralWest', label: 'Central West - Kisumu' },
+  { value: 'EastWest', label: 'East West - Kisumu' },
+  { value: 'NorthWest', label: 'North West - Kisumu' },
+];
 
 const StatusBadge = ({ status }) => {
   const styles = {
@@ -81,8 +111,8 @@ const CHW = ({ onAnalyze, patients = [] }) => {
                   required
                 >
                   <option value="">Select Ward Location</option>
-                  {[...Array(40)].map((_, i) => (
-                    <option key={i+1} value={`Ward ${i+1}`}>Ward {i+1}</option>
+                  {KENYAN_WARDS.map((ward) => (
+                    <option key={ward.value} value={ward.value}>{ward.label}</option>
                   ))}
                 </select>
               </div>
@@ -139,20 +169,66 @@ const CHW = ({ onAnalyze, patients = [] }) => {
           </form>
         </section>
 
-        {/* Previous Patients Section */}
+        {/* Previous Patients Section where the history of the CHW is displayed*/}
         <section>
           {patients.length > 0 ? (
             <div className="bg-slate-800/40 backdrop-blur-xl border border-slate-700/50 rounded-3xl p-8">
-              <h3 className="text-xl font-bold text-white mb-6">Recent Patient Records</h3>
-              <div className="space-y-4">
+              <h3 className="text-xl font-bold text-white mb-6 flex items-center">
+                <History size={20} className="mr-2 text-teal-400" />
+                Recent Patient Records
+              </h3>
+              <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
                 {patients.map(patient => (
-                  <div key={patient.id} className="bg-slate-900/50 border border-slate-700 rounded-xl p-4 hover:border-teal-400/30 transition">
-                    <div className="flex justify-between items-start mb-2">
-                      <h4 className="text-white font-semibold">{patient.fullName}</h4>
+                  <div key={patient.id} className="bg-slate-900/50 border border-slate-700 rounded-2xl p-5 hover:border-teal-400/50 transition-all hover:bg-slate-900/70">
+                    {/* Header with name and severity */}
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-teal-400/20 flex items-center justify-center border border-teal-400/30">
+                          <User size={18} className="text-teal-400" />
+                        </div>
+                        <div>
+                          <h4 className="text-white font-bold text-base">{patient.fullName}</h4>
+                          <p className="text-slate-400 text-xs">Age: {patient.age || 'N/A'} years</p>
+                        </div>
+                      </div>
                       <StatusBadge status={patient.status} />
                     </div>
-                    <p className="text-teal-400 text-sm mb-2">{patient.diagnosis}</p>
-                    <p className="text-slate-400 text-xs">{patient.timestamp}</p>
+
+                    {/* Condition and Diagnosis */}
+                    <div className="space-y-3 mb-3">
+                      <div className="flex items-start gap-2">
+                        <Stethoscope size={14} className="text-amber-400 mt-1 flex-shrink-0" />
+                        <div className="flex-1">
+                          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Condition/Diagnosis</p>
+                          <p className="text-teal-400 font-semibold text-sm">{patient.diagnosis || patient.symptoms}</p>
+                        </div>
+                      </div>
+
+                      {/* Medical History */}
+                      {patient.history && (
+                        <div className="flex items-start gap-2">
+                          <History size={14} className="text-blue-400 mt-1 flex-shrink-0" />
+                          <div className="flex-1">
+                            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Medical History</p>
+                            <p className="text-slate-300 text-xs">{patient.history}</p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Ward Location */}
+                      <div className="flex items-start gap-2">
+                        <MapPin size={14} className="text-purple-400 mt-1 flex-shrink-0" />
+                        <div className="flex-1">
+                          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Ward Location</p>
+                          <p className="text-purple-300 font-medium text-sm">{patient.ward || 'Not Assigned'}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Timestamp */}
+                    <p className="text-slate-500 text-[11px] pt-2 border-t border-slate-700/50">
+                      <span className="font-bold">Recorded:</span> {patient.timestamp || new Date().toLocaleString()}
+                    </p>
                   </div>
                 ))}
               </div>
