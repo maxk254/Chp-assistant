@@ -1,10 +1,14 @@
 import React, { useState } from 'react';
 import { User, Lock, Globe, Shield } from 'lucide-react';
 
-const Settings = () => {
+const Settings = ({ user = {} }) => {
   const [settings, setSettings] = useState({
-    chwId: 'CHW-2024-00456',
-    assignedWard: 'Kibera',
+    chwId: user.id || 'CHW-2024-00456',
+    name: user.name || 'User',
+    role: user.role || 'CHW',
+    assignedWard: user.ward || 'Kibera',
+    email: user.email || 'user@chpassistant.ke',
+    phone: user.phone || '+254 722 123 456',
     dataEncryption: true,
     consentManagement: true,
     biometricLock: true,
@@ -31,7 +35,7 @@ const Settings = () => {
   return (
     <div className="w-full min-h-screen bg-slate-900 text-white p-8">
       <h1 className="text-4xl font-bold mb-2">Settings & Configuration</h1>
-      <p className="text-slate-400 mb-8">Manage your CHW profile, compliance, and system preferences</p>
+      <p className="text-slate-400 mb-8">Manage your {settings.role} profile, compliance, and system preferences</p>
       
       <div className="space-y-6">
         {/* User Profile Section */}
@@ -42,8 +46,24 @@ const Settings = () => {
           </div>
           <div className="space-y-4">
             <div>
-              <p className="text-slate-400 text-sm mb-1">CHW ID</p>
+              <p className="text-slate-400 text-sm mb-1">Full Name</p>
+              <p className="text-lg text-white font-semibold">{settings.name}</p>
+            </div>
+            <div>
+              <p className="text-slate-400 text-sm mb-1">Role</p>
+              <p className="text-lg text-teal-400 font-semibold">{settings.role}</p>
+            </div>
+            <div>
+              <p className="text-slate-400 text-sm mb-1">ID</p>
               <p className="text-lg font-mono text-teal-400">{settings.chwId}</p>
+            </div>
+            <div>
+              <p className="text-slate-400 text-sm mb-1">Email</p>
+              <p className="text-lg text-white">{settings.email}</p>
+            </div>
+            <div>
+              <p className="text-slate-400 text-sm mb-1">Phone</p>
+              <p className="text-lg text-white">{settings.phone}</p>
             </div>
             <div>
               <p className="text-slate-400 text-sm mb-1">Assigned Ward</p>

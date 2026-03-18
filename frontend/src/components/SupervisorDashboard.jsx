@@ -1,7 +1,7 @@
 import React from 'react';
 import Supervisor from './ui/Supervisor';
 
-const SupervisorDashboard = ({ patients = [] }) => {
+const SupervisorDashboard = ({ patients = [], supervisorName = 'Supervisor' }) => {
   // Derive CHWs from patients data or use empty array
   // In a real app, this would come from your backend
   const chws = patients.length > 0 
@@ -16,7 +16,7 @@ const SupervisorDashboard = ({ patients = [] }) => {
       }))
     : [];
 
-  return <Supervisor patients={patients} chws={chws} />;
+  return <Supervisor patients={patients} chws={chws} supervisorName={supervisorName} />;
 };
 
 export default SupervisorDashboard;

@@ -80,7 +80,7 @@ const getInitials = (name = "") =>
     .map((n) => n[0]?.toUpperCase() || "")
     .join("");
 
-const Supervisor = ({ patients = [], chws = [] }) => {
+const Supervisor = ({ patients = [], chws = [], supervisorName = 'Supervisor' }) => {
   const [selectedChw, setSelectedChw] = useState(null);
 
   // Calculate dynamic metrics
@@ -112,17 +112,19 @@ const Supervisor = ({ patients = [], chws = [] }) => {
     <div className="max-w-7xl mx-auto py-8 px-8 space-y-8">
       {/* Header */}
       <section className="bg-slate-800/40 backdrop-blur-xl border border-slate-700/50 rounded-3xl p-8">
-        <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-teal-400/10 border border-teal-400/20 flex items-center justify-center">
-            <Activity className="text-teal-400" size={24} />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">
-              Supervisor Dashboard
-            </h1>
-            <p className="text-slate-400 text-sm">
-              Githunguri Sub-County · Kiambu County · CHP Oversight
-            </p>
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-start gap-4 flex-1">
+            <div className="w-12 h-12 rounded-2xl bg-teal-400/10 border border-teal-400/20 flex items-center justify-center">
+              <Activity className="text-teal-400" size={24} />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-white tracking-tight">
+                Supervisor Dashboard
+              </h1>
+              <p className="text-slate-400 text-sm">
+                Managed by {supervisorName} · Githunguri Sub-County · Kiambu County
+              </p>
+            </div>
           </div>
         </div>
       </section>

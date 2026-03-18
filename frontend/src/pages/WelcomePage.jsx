@@ -21,11 +21,11 @@ function WelcomePage() {
     return () => clearInterval(interval);
   }, []);
 
-  // will redirect the user to login page after 10 seconds
+  // will redirect the user to login page after 5 seconds
   useEffect(() => {
     const redirectTimeout = setTimeout(() => {
       navigate("/login");
-    }, 10000);
+    }, 7000);
 
     return () => clearTimeout(redirectTimeout);
   }, [navigate]);
