@@ -7,7 +7,7 @@ require("dotenv").config();
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
-// Temporary OTP storage
+
 let otpStore = {};
 
 // ---------------- SIGNUP ----------------
