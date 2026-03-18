@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Heart } from "lucide-react";
 
 function WelcomePage() {
   const [displayText, setDisplayText] = useState("");
   const fullText = "Community Health AI Assistant";
+  const navigate = useNavigate();
 
   useEffect(() => {
     let index = 0;
@@ -18,6 +20,15 @@ function WelcomePage() {
 
     return () => clearInterval(interval);
   }, []);
+
+  // will redirect the user to login page after 10 seconds
+  useEffect(() => {
+    const redirectTimeout = setTimeout(() => {
+      navigate("/login");
+    }, 10000);
+
+    return () => clearTimeout(redirectTimeout);
+  }, [navigate]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-teal-900/20 to-slate-900 flex items-center justify-center overflow-hidden">
@@ -36,13 +47,19 @@ function WelcomePage() {
             <div className="absolute inset-0 animate-pulse">
               <div className="w-24 h-24 rounded-full border-2 border-teal-400/50 absolute inset-0"></div>
             </div>
-            <div className="absolute inset-0 animate-pulse" style={{ animationDelay: "0.5s" }}>
+            <div
+              className="absolute inset-0 animate-pulse"
+              style={{ animationDelay: "0.5s" }}
+            >
               <div className="w-28 h-28 rounded-full border border-cyan-400/30 absolute inset-0 -top-2 -left-2"></div>
             </div>
 
             {/* Icon container */}
             <div className="w-24 h-24 rounded-full bg-gradient-to-br from-teal-400/20 to-cyan-400/20 border-2 border-teal-400 flex items-center justify-center relative z-20">
-              <Heart className="w-12 h-12 text-teal-300 animate-pulse" fill="currentColor" />
+              <Heart
+                className="w-12 h-12 text-teal-300 animate-pulse"
+                fill="currentColor"
+              />
             </div>
           </div>
         </div>
@@ -72,7 +89,7 @@ function WelcomePage() {
                   0% { stroke-dashoffset: 1000; }
                   100% { stroke-dashoffset: 0; }
                 }
-                
+
                 .heartline {
                   stroke: currentColor;
                   stroke-width: 2;
@@ -81,7 +98,7 @@ function WelcomePage() {
                   stroke-linejoin: round;
                   filter: drop-shadow(0 0 2px rgba(34, 197, 94, 0.5));
                 }
-                
+
                 .heartline-animated {
                   animation: drawLine 2.5s linear infinite;
                   stroke-dasharray: 1000;
@@ -89,10 +106,7 @@ function WelcomePage() {
               `}</style>
 
               {/* Static baseline before heart */}
-              <polyline
-                className="heartline"
-                points="0,50 100,50"
-              />
+              <polyline className="heartline" points="0,50 100,50" />
 
               {/* Animated heart monitor line */}
               <polyline
@@ -103,11 +117,19 @@ function WelcomePage() {
 
             {/* Loading text */}
             <div className="flex items-center justify-center gap-2 mt-4">
-              <span className="text-slate-300 text-sm font-medium">Loading</span>
+              <span className="text-slate-300 text-sm font-medium">
+                Loading
+              </span>
               <div className="flex gap-1">
                 <span className="w-2 h-2 rounded-full bg-teal-400 animate-bounce"></span>
-                <span className="w-2 h-2 rounded-full bg-teal-400 animate-bounce" style={{ animationDelay: "0.1s" }}></span>
-                <span className="w-2 h-2 rounded-full bg-teal-400 animate-bounce" style={{ animationDelay: "0.2s" }}></span>
+                <span
+                  className="w-2 h-2 rounded-full bg-teal-400 animate-bounce"
+                  style={{ animationDelay: "0.1s" }}
+                ></span>
+                <span
+                  className="w-2 h-2 rounded-full bg-teal-400 animate-bounce"
+                  style={{ animationDelay: "0.2s" }}
+                ></span>
               </div>
             </div>
           </div>
