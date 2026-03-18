@@ -1,9 +1,9 @@
-import dotenv from 'dotenv';
+import dotenv from "dotenv";
 dotenv.config();
 
-import express from 'express';
-import mongoose from 'mongoose'
-import cors from 'cors';
+import express from "express";
+import mongoose from "mongoose";
+import cors from "cors";
 
 // Importing ussd route
 import ussdHandler from "./ussd/handler.js";
@@ -20,31 +20,32 @@ const app = express();
 // middleware
 
 app.use(cors());
-app.use(express.json())
-app.use(express.urlencoded({extended: true}));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Connecting to MongoDB
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('MongoDB connected successfuly'))
-  .catch((err) => console.error('MongoDB coonection error', err))
+mongoose
+  .connect(process.env.MONGODB_URI)
+  .then(() => console.log("MongoDB connected successfuly"))
+  .catch((err) => console.error("MongoDB coonection error", err));
 
 // Health Check
-app.get('/health', (req, res) =>{
+app.get("/health", (req, res) => {
   res.json({
-    status: 'awake',
-    db:mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
+    status: "awake",
+    db: mongoose.connection.readyState === 1 ? "connected" : "disconnected",
   });
 });
 
 // USSD Routes
-app.post ('ussd', ussdHandler);
+app.post("/ussd", ussdHandler);
 
 // API Routes
-app.use('/api/sessions',  sessionsRoutes)
-app.use('/api/alerts',  alertsRoutes)
-app.use('/api/facilities', facilitiesRoutes)
-app.use('/api/stats',  statsRoute)
-app.use('/api/whatsapp', whatsappRoutes)
+app.use("/api/sessions", sessionsRoutes);
+app.use("/api/alerts", alertsRoutes);
+app.use("/api/facilities", facilitiesRoutes);
+app.use("/api/stats", statsRoute);
+app.use("/api/whatsapp", whatsappRoutes);
 
 // start server
 const PORT = process.env.PORT || 3000;
