@@ -1,9 +1,9 @@
-const express = require("express");
+import express from "express";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import User from "../models/User.js";
+
 const router = express.Router();
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
-const User = require("../models/User");
-require("dotenv").config();
 
 const JWT_SECRET = process.env.JWT_SECRET;
 // auth
@@ -19,11 +19,18 @@ router.post("/signup", async (req, res) => {
     if (role === "supervisor") existingUser = await User.findOne({ email });
     else existingUser = await User.findOne({ phone });
 
-    if (existingUser) return res.status(400).json({ error: "User already exists" });
+    if (existingUser)
+      return res.status(400).json({ error: "User already exists" });
 
     const hashedPassword = password ? await bcrypt.hash(password, 10) : null;
 
-    const user = new User({ name, role, phone, email, password: hashedPassword });
+    const user = new User({
+      name,
+      role,
+      phone,
+      email,
+      password: hashedPassword,
+    });
     await user.save();
 
     res.json({ message: "User registered successfully" });
@@ -53,17 +60,21 @@ router.post("/request-otp", async (req, res) => {
 router.post("/verify-otp", async (req, res) => {
   const { phone, otp } = req.body;
 
-  if (!phone || !otp) return res.status(400).json({ error: "Phone and OTP required" });
+  if (!phone || !otp)
+    return res.status(400).json({ error: "Phone and OTP required" });
 
   const realOtp = otpStore[phone];
-  if (!realOtp || realOtp !== otp) return res.status(400).json({ error: "Invalid OTP" });
+  if (!realOtp || realOtp !== otp)
+    return res.status(400).json({ error: "Invalid OTP" });
 
   const user = await User.findOne({ phone });
   if (!user) return res.status(400).json({ error: "User not found" });
 
-  const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: "1h" });
+  const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, {
+    expiresIn: "1h",
+  });
 
-  delete otpStore[phone]; 
+  delete otpStore[phone];
   res.json({ token, role: user.role });
 });
 
@@ -71,7 +82,8 @@ router.post("/verify-otp", async (req, res) => {
 router.post("/login", async (req, res) => {
   const { role, email, password } = req.body;
 
-  if (role !== "supervisor") return res.status(400).json({ error: "Use OTP login for CHW/Facility" });
+  if (role !== "supervisor")
+    return res.status(400).json({ error: "Use OTP login for CHW/Facility" });
 
   try {
     const user = await User.findOne({ email, role });
@@ -80,7 +92,9 @@ router.post("/login", async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ error: "Invalid password" });
 
-    const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: "1h" });
+    const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, {
+      expiresIn: "1h",
+    });
     res.json({ token, role: user.role });
   } catch (err) {
     console.error(err);
@@ -88,4 +102,4 @@ router.post("/login", async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;
