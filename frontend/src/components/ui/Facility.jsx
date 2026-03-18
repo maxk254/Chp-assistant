@@ -69,9 +69,22 @@ const getInitials = (name = "") =>
     .map((n) => n[0]?.toUpperCase() || "")
     .join("");
 
-const Facility = ({ patients = [] }) => {
-  const [patientStatuses, setPatientStatuses] = useState({});
+const Facility = ({
+  patients = [],
+  patientStatuses = {},
+  onUpdatePatientStatus,
+  onAcceptAllPending,
+}) => {
+  const [localPatientStatuses, setLocalPatientStatuses] = useState({});
   const [openDropdown, setOpenDropdown] = useState(null);
+
+  const hasExternalStatusHandlers =
+    typeof onUpdatePatientStatus === "function" ||
+    typeof onAcceptAllPending === "function";
+
+  const activeStatuses = hasExternalStatusHandlers
+    ? patientStatuses
+    : localPatientStatuses;
 
   const incoming = patients.map((p, i) => ({
     id: p.id || i + 1,
@@ -86,20 +99,25 @@ const Facility = ({ patients = [] }) => {
   const pendingCount = incoming.filter(
     (r) =>
       String(r.priority).toLowerCase() === "urgent" ||
-      String(r.priority).toLowerCase() === "high"
+      String(r.priority).toLowerCase() === "high",
   ).length;
 
   // Calculate dynamic metrics
-  const uniqueCHWs = new Set(patients.map(p => p.chwName)).size;
+  const uniqueCHWs = new Set(patients.map((p) => p.chwName)).size;
   const referralsReceived = patients.length;
-  const patientsAttended = Object.keys(patientStatuses).length;
+  const patientsAttended = Object.values(activeStatuses).filter(Boolean).length;
 
   const handleAcceptAll = () => {
+    if (typeof onAcceptAllPending === "function") {
+      onAcceptAllPending("Arrived");
+      return;
+    }
+
     const newStatuses = {};
-    incoming.forEach(referral => {
+    incoming.forEach((referral) => {
       newStatuses[referral.id] = "Arrived";
     });
-    setPatientStatuses(newStatuses);
+    setLocalPatientStatuses(newStatuses);
   };
 
   return (
@@ -152,9 +170,10 @@ const Facility = ({ patients = [] }) => {
               Review and accept pending referrals
             </p>
           </div>
-          <button 
+          <button
             onClick={handleAcceptAll}
-            className="bg-linear-to-r from-emerald-500 to-teal-400 hover:to-emerald-400 text-white font-bold py-3 px-5 rounded-2xl shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 transition-all flex items-center gap-2 w-fit">
+            className="bg-linear-to-r from-emerald-500 to-teal-400 hover:to-emerald-400 text-white font-bold py-3 px-5 rounded-2xl shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 transition-all flex items-center gap-2 w-fit"
+          >
             <CheckCircle2 size={18} />
             <span className="uppercase tracking-widest text-xs">
               Accept All Pending
@@ -210,8 +229,8 @@ const Facility = ({ patients = [] }) => {
                   className="w-full bg-teal-500/10 border border-teal-400/30 text-teal-400 hover:bg-teal-500/20 transition font-semibold py-2 px-3 rounded-lg text-sm flex items-center justify-between"
                 >
                   <span>
-                    {patientStatuses[referral.id]
-                      ? patientStatuses[referral.id].toUpperCase()
+                    {activeStatuses[referral.id]
+                      ? activeStatuses[referral.id].toUpperCase()
                       : "UPDATE STATUS"}
                   </span>
                   <ChevronDown
@@ -228,10 +247,14 @@ const Facility = ({ patients = [] }) => {
                       <button
                         key={status}
                         onClick={() => {
-                          setPatientStatuses({
-                            ...patientStatuses,
-                            [referral.id]: status,
-                          });
+                          if (typeof onUpdatePatientStatus === "function") {
+                            onUpdatePatientStatus(referral.id, status);
+                          } else {
+                            setLocalPatientStatuses({
+                              ...activeStatuses,
+                              [referral.id]: status,
+                            });
+                          }
                           setOpenDropdown(null);
                         }}
                         className="w-full px-4 py-2.5 text-left text-white hover:bg-teal-500/20 transition text-sm border-b border-slate-700 last:border-b-0"

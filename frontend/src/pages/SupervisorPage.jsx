@@ -6,10 +6,12 @@ import SupervisorDashboard from "../components/SupervisorDashboard";
 import LiveMap from "../components/LiveMap";
 import Settings from "../components/ui/Settings";
 import { useUser } from "../context/UserContext";
+import { usePatientData } from "../context/PatientDataContext";
 
 function SupervisorPage() {
   const [currentTab, setTab] = useState("supervisor");
   const { user, logout } = useUser();
+  const { patients } = usePatientData();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -20,13 +22,23 @@ function SupervisorPage() {
   const renderContent = () => {
     switch (currentTab) {
       case "supervisor":
-        return <SupervisorDashboard />;
+        return (
+          <SupervisorDashboard
+            patients={patients}
+            supervisorName={displayName}
+          />
+        );
       case "map":
-        return <LiveMap />;
+        return <LiveMap patients={patients} />;
       case "settings":
-        return <Settings />;
+        return <Settings user={user} />;
       default:
-        return <SupervisorDashboard />;
+        return (
+          <SupervisorDashboard
+            patients={patients}
+            supervisorName={displayName}
+          />
+        );
     }
   };
 
@@ -35,7 +47,12 @@ function SupervisorPage() {
   return (
     <div className="flex h-screen bg-slate-950">
       {/* Sidebar Navigation */}
-      <Sidebar currentTab={currentTab} setTab={setTab} role="Supervisor" onLogout={handleLogout} />
+      <Sidebar
+        currentTab={currentTab}
+        setTab={setTab}
+        role="Supervisor"
+        onLogout={handleLogout}
+      />
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col ml-40 overflow-hidden">
@@ -44,13 +61,7 @@ function SupervisorPage() {
 
         {/* Content */}
         <div className="flex-1 overflow-auto bg-slate-950">
-          {currentTab === "supervisor" ? (
-            <SupervisorDashboard supervisorName={displayName} />
-          ) : currentTab === "map" ? (
-            <LiveMap />
-          ) : (
-            <Settings user={user} />
-          )}
+          {renderContent()}
         </div>
       </div>
     </div>

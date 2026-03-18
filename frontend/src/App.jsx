@@ -6,47 +6,51 @@ import FacilityPage from "./pages/FacilityPage";
 import Home from "./pages/Home";
 import LoginPage from "./pages/LoginPage";
 import RoleProtectedRoute from "./components/auth/RoleProtectedRoute";
+import { UserProvider } from "./context/UserContext";
+import { PatientDataProvider } from "./context/PatientDataContext";
 
 function App() {
   return (
-    <>
-      <Routes>
-        <Route path="/" element={<WelcomePage />} />
-        <Route path="/login" element={<LoginPage />} />
-        
-        {/* CHW Dashboard - only accessible by CHW role users */}
-        <Route
-          path="/chw"
-          element={
-            <RoleProtectedRoute allowedRoles={["CHW"]}>
-              <CHWPage />
-            </RoleProtectedRoute>
-          }
-        />
+    <UserProvider>
+      <PatientDataProvider>
+        <Routes>
+          <Route path="/" element={<WelcomePage />} />
+          <Route path="/login" element={<LoginPage />} />
 
-        {/* Supervisor Dashboard - only accessible by Supervisor role users */}
-        <Route
-          path="/supervisor"
-          element={
-            <RoleProtectedRoute allowedRoles={["Supervisor"]}>
-              <SupervisorPage />
-            </RoleProtectedRoute>
-          }
-        />
+          {/* CHW Dashboard - only accessible by CHW role users */}
+          <Route
+            path="/chw"
+            element={
+              <RoleProtectedRoute allowedRoles={["CHW"]}>
+                <CHWPage />
+              </RoleProtectedRoute>
+            }
+          />
 
-        {/* Facility Dashboard - only accessible by Facility role users */}
-        <Route
-          path="/facility"
-          element={
-            <RoleProtectedRoute allowedRoles={["Facility"]}>
-              <FacilityPage />
-            </RoleProtectedRoute>
-          }
-        />
-        
-        <Route path="/home" element={<Home />} />
-      </Routes>
-    </>
+          {/* Supervisor Dashboard - only accessible by Supervisor role users */}
+          <Route
+            path="/supervisor"
+            element={
+              <RoleProtectedRoute allowedRoles={["Supervisor"]}>
+                <SupervisorPage />
+              </RoleProtectedRoute>
+            }
+          />
+
+          {/* Facility Dashboard - only accessible by Facility role users */}
+          <Route
+            path="/facility"
+            element={
+              <RoleProtectedRoute allowedRoles={["Facility"]}>
+                <FacilityPage />
+              </RoleProtectedRoute>
+            }
+          />
+
+          <Route path="/home" element={<Home />} />
+        </Routes>
+      </PatientDataProvider>
+    </UserProvider>
   );
 }
 

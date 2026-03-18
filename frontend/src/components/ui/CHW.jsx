@@ -22,7 +22,8 @@ const StatusBadge = ({ status }) => {
     default: "bg-slate-500/10 text-slate-500 border-slate-500/20",
   };
 
-  const currentStyle = styles[status.toLowerCase()] || styles.default;
+  const normalizedStatus = String(status || "default").toLowerCase();
+  const currentStyle = styles[normalizedStatus] || styles.default;
 
   return (
     <span
@@ -30,9 +31,9 @@ const StatusBadge = ({ status }) => {
     >
       <span
         className={`w-1.5 h-1.5 rounded-full mr-2 ${
-          status.toLowerCase() === "high"
+          normalizedStatus === "high"
             ? "bg-red-500"
-            : status.toLowerCase() === "medium"
+            : normalizedStatus === "medium"
               ? "bg-amber-500"
               : "bg-emerald-500"
         } animate-pulse`}
@@ -42,7 +43,15 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-const CHW = ({ onAnalyze, onSave, patients = [] }) => {
+const CHW = ({
+  onAnalyze,
+  onSave,
+  patients = [],
+  analysisResults = null,
+  isAnalyzing = false,
+  analyzeError = "",
+  canSave = false,
+}) => {
   const [formData, setFormData] = useState({
     fullName: "",
     ward: "",
@@ -51,28 +60,25 @@ const CHW = ({ onAnalyze, onSave, patients = [] }) => {
     symptoms: "",
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onAnalyze(formData);
+    if (onAnalyze) {
+      await onAnalyze(formData);
+    }
   };
 
-  const handleSavePatient = () => {
+  const handleSavePatient = async () => {
     if (onSave) {
-      onSave({
-        ...formData,
-        diagnosis: formData.symptoms,
-        chwName: "CHW", // Default, can be updated later
-        timestamp: new Date().toLocaleString(),
-        id: Date.now(),
-      });
-      // Reset form after saving
-      setFormData({
-        fullName: "",
-        ward: "",
-        age: "",
-        history: "",
-        symptoms: "",
-      });
+      const saved = await onSave(formData);
+      if (saved) {
+        setFormData({
+          fullName: "",
+          ward: "",
+          age: "",
+          history: "",
+          symptoms: "",
+        });
+      }
     }
   };
 
@@ -188,10 +194,11 @@ const CHW = ({ onAnalyze, onSave, patients = [] }) => {
 
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-emerald-500 to-teal-400 hover:to-emerald-400 text-white font-bold py-5 rounded-2xl shadow-xl shadow-emerald-500/20 hover:shadow-emerald-500/40 transform hover:-translate-y-1 transition-all flex items-center justify-center space-x-3 group active:scale-95"
+              disabled={isAnalyzing}
+              className="w-full bg-linear-to-r from-emerald-500 to-teal-400 hover:to-emerald-400 text-white font-bold py-5 rounded-2xl shadow-xl shadow-emerald-500/20 hover:shadow-emerald-500/40 transform hover:-translate-y-1 transition-all flex items-center justify-center space-x-3 group active:scale-95"
             >
               <span className="text-lg uppercase tracking-widest">
-                Run AI Diagnostic
+                {isAnalyzing ? "Running AI Diagnostic..." : "Run AI Diagnostic"}
               </span>
               <ChevronRight className="group-hover:translate-x-1 transition-transform" />
             </button>
@@ -199,13 +206,94 @@ const CHW = ({ onAnalyze, onSave, patients = [] }) => {
             <button
               type="button"
               onClick={handleSavePatient}
-              className="w-full bg-gradient-to-r from-teal-500 to-cyan-400 hover:to-teal-400 text-white font-bold py-5 rounded-2xl shadow-xl shadow-teal-500/20 hover:shadow-teal-500/40 transform hover:-translate-y-1 transition-all flex items-center justify-center space-x-3 group active:scale-95"
+              disabled={!canSave}
+              className="w-full bg-linear-to-r from-teal-500 to-cyan-400 hover:to-teal-400 text-white font-bold py-5 rounded-2xl shadow-xl shadow-teal-500/20 hover:shadow-teal-500/40 transform hover:-translate-y-1 transition-all flex items-center justify-center space-x-3 group active:scale-95"
             >
               <span className="text-lg uppercase tracking-widest">
                 Save Patient Record
               </span>
               <ChevronRight className="group-hover:translate-x-1 transition-transform" />
             </button>
+
+            {!canSave && (
+              <p className="text-xs text-amber-300/90 text-center">
+                Run AI Diagnostic first before saving this patient record.
+              </p>
+            )}
+
+            {analyzeError && (
+              <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
+                <p className="text-red-300 text-sm font-medium">
+                  {analyzeError}
+                </p>
+              </div>
+            )}
+
+            {analysisResults && (
+              <div className="bg-slate-900/50 border border-slate-700 rounded-2xl p-5 space-y-4">
+                <h4 className="text-white font-bold text-base">
+                  AI Diagnostic Output
+                </h4>
+
+                <div>
+                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                    Diagnosis
+                  </p>
+                  <p className="text-teal-300 font-semibold text-sm">
+                    {analysisResults.diagnosis || "Pending"}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                      Confidence
+                    </p>
+                    <p className="text-slate-200 text-sm">
+                      {analysisResults.confidence || "N/A"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                      Emergency Level
+                    </p>
+                    <p className="text-slate-200 text-sm">
+                      {analysisResults.emergencyLevel || "MEDIUM"}
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                    Recommended Facility
+                  </p>
+                  <p className="text-slate-200 text-sm">
+                    {analysisResults.recommendedFacility || "Not specified"}
+                  </p>
+                </div>
+
+                {Array.isArray(analysisResults.recommendations) &&
+                  analysisResults.recommendations.length > 0 && (
+                    <div>
+                      <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                        Recommendations
+                      </p>
+                      <ul className="space-y-1">
+                        {analysisResults.recommendations.map(
+                          (recommendation, index) => (
+                            <li
+                              key={`${recommendation}-${index}`}
+                              className="text-slate-300 text-xs"
+                            >
+                              • {recommendation}
+                            </li>
+                          ),
+                        )}
+                      </ul>
+                    </div>
+                  )}
+              </div>
+            )}
           </form>
         </section>
 
@@ -217,7 +305,7 @@ const CHW = ({ onAnalyze, onSave, patients = [] }) => {
                 <History size={20} className="mr-2 text-teal-400" />
                 Recent Patient Records
               </h3>
-              <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2">
+              <div className="space-y-4 max-h-150 overflow-y-auto pr-2">
                 {patients.map((patient) => (
                   <div
                     key={patient.id}
@@ -246,7 +334,7 @@ const CHW = ({ onAnalyze, onSave, patients = [] }) => {
                       <div className="flex items-start gap-2">
                         <Stethoscope
                           size={14}
-                          className="text-amber-400 mt-1 flex-shrink-0"
+                          className="text-amber-400 mt-1 shrink-0"
                         />
                         <div className="flex-1">
                           <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
@@ -263,7 +351,7 @@ const CHW = ({ onAnalyze, onSave, patients = [] }) => {
                         <div className="flex items-start gap-2">
                           <History
                             size={14}
-                            className="text-blue-400 mt-1 flex-shrink-0"
+                            className="text-blue-400 mt-1 shrink-0"
                           />
                           <div className="flex-1">
                             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
@@ -280,7 +368,7 @@ const CHW = ({ onAnalyze, onSave, patients = [] }) => {
                       <div className="flex items-start gap-2">
                         <MapPin
                           size={14}
-                          className="text-purple-400 mt-1 flex-shrink-0"
+                          className="text-purple-400 mt-1 shrink-0"
                         />
                         <div className="flex-1">
                           <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">

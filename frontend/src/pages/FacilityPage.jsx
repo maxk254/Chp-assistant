@@ -6,10 +6,17 @@ import FacilityDashboard from "../components/FacilityDashboard";
 import LiveMap from "../components/LiveMap";
 import Settings from "../components/ui/Settings";
 import { useUser } from "../context/UserContext";
+import { usePatientData } from "../context/PatientDataContext";
 
 function FacilityPage() {
   const [currentTab, setTab] = useState("facility");
   const { user, logout } = useUser();
+  const {
+    patients,
+    patientStatuses,
+    updatePatientStatus,
+    markAllPatientsStatus,
+  } = usePatientData();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -20,13 +27,27 @@ function FacilityPage() {
   const renderContent = () => {
     switch (currentTab) {
       case "facility":
-        return <FacilityDashboard />;
+        return (
+          <FacilityDashboard
+            patients={patients}
+            patientStatuses={patientStatuses}
+            onUpdatePatientStatus={updatePatientStatus}
+            onAcceptAllPending={markAllPatientsStatus}
+          />
+        );
       case "map":
-        return <LiveMap />;
+        return <LiveMap patients={patients} />;
       case "settings":
         return <Settings user={user} />;
       default:
-        return <FacilityDashboard />;
+        return (
+          <FacilityDashboard
+            patients={patients}
+            patientStatuses={patientStatuses}
+            onUpdatePatientStatus={updatePatientStatus}
+            onAcceptAllPending={markAllPatientsStatus}
+          />
+        );
     }
   };
 
@@ -35,7 +56,12 @@ function FacilityPage() {
   return (
     <div className="flex h-screen bg-slate-950">
       {/* Sidebar Navigation */}
-      <Sidebar currentTab={currentTab} setTab={setTab} role="Facility" onLogout={handleLogout} />
+      <Sidebar
+        currentTab={currentTab}
+        setTab={setTab}
+        role="Facility"
+        onLogout={handleLogout}
+      />
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col ml-40 overflow-hidden">

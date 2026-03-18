@@ -1,22 +1,43 @@
-import React from 'react';
-import Supervisor from './ui/Supervisor';
+import React from "react";
+import Supervisor from "./ui/Supervisor";
 
-const SupervisorDashboard = ({ patients = [], supervisorName = 'Supervisor' }) => {
-  // Derive CHWs from patients data or use empty array
-  // In a real app, this would come from your backend
-  const chws = patients.length > 0 
-    ? patients.map((p, index) => ({
-        id: index + 1,
-        name: p.chwName || `CHW ${index + 1}`,
-        zone: p.ward || 'Unknown Ward',
-        sessions: 0,
-        referrals: patients.filter(pat => pat.chwName === p.chwName).length,
-        lastSeen: 'Recently',
-        status: 'active',
-      }))
-    : [];
+const SupervisorDashboard = ({
+  patients = [],
+  supervisorName = "Supervisor",
+}) => {
+  const chwMap = new Map();
 
-  return <Supervisor patients={patients} chws={chws} supervisorName={supervisorName} />;
+  patients.forEach((patient) => {
+    const chwName = patient?.chwName || "CHW";
+    const existing = chwMap.get(chwName) || {
+      id: chwMap.size + 1,
+      name: chwName,
+      zone: patient?.ward || "Unknown Ward",
+      sessions: 0,
+      patients: 0,
+      referrals: 0,
+      lastSeen: patient?.timestamp || "Recently",
+      status: "active",
+    };
+
+    existing.sessions += 1;
+    existing.patients += 1;
+    existing.referrals += 1;
+    existing.zone = patient?.ward || existing.zone;
+    existing.lastSeen = patient?.timestamp || existing.lastSeen;
+
+    chwMap.set(chwName, existing);
+  });
+
+  const chws = Array.from(chwMap.values());
+
+  return (
+    <Supervisor
+      patients={patients}
+      chws={chws}
+      supervisorName={supervisorName}
+    />
+  );
 };
 
 export default SupervisorDashboard;
