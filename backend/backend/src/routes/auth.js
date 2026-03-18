@@ -6,7 +6,7 @@ const User = require("../models/User");
 require("dotenv").config();
 
 const JWT_SECRET = process.env.JWT_SECRET;
-// 
+// auth
 
 let otpStore = {};
 
