@@ -5,11 +5,43 @@ import {
   ChevronRight, MapPin, Phone, AlertCircle
 } from 'lucide-react';
 
+// Kenyan Wards Data
+const KENYAN_WARDS = [
+  { value: 'Dagoretti', label: 'Dagoretti - Nairobi' },
+  { value: 'Embakasi', label: 'Embakasi - Nairobi' },
+  { value: 'Kamukunji', label: 'Kamukunji - Nairobi' },
+  { value: 'Kasarani', label: 'Kasarani - Nairobi' },
+  { value: 'Kibera', label: 'Kibera - Nairobi' },
+  { value: 'Makadara', label: 'Makadara - Nairobi' },
+  { value: 'Mathare', label: 'Mathare - Nairobi' },
+  { value: 'Ruaraka', label: 'Ruaraka - Nairobi' },
+  { value: 'Westlands', label: 'Westlands - Nairobi' },
+  { value: 'Karen', label: 'Karen - Nairobi' },
+  { value: 'Kilimani', label: 'Kilimani - Nairobi' },
+  { value: 'Nyaya', label: 'Nyaya - Nairobi' },
+  { value: 'Starehe', label: 'Starehe - Nairobi' },
+  { value: 'Langata', label: 'Langata - Nairobi' },
+  { value: 'IlalaWest', label: 'Ilala West - Mombasa' },
+  { value: 'MombasaWest', label: 'Mombasa West - Mombasa' },
+  { value: 'MombasaEast', label: 'Mombasa East - Mombasa' },
+  { value: 'KisauniWest', label: 'Kisauni West - Mombasa' },
+  { value: 'Nyali', label: 'Nyali - Mombasa' },
+  { value: 'Jomvu', label: 'Jomvu - Mombasa' },
+  { value: 'KigamboniWest', label: 'Kigamboni West - Mombasa' },
+  { value: 'Kisauni', label: 'Kisauni - Mombasa' },
+  { value: 'KadhadhWest', label: 'Khadhadh West - Kisumu' },
+  { value: 'CentralWest', label: 'Central West - Kisumu' },
+  { value: 'EastWest', label: 'East West - Kisumu' },
+  { value: 'NorthWest', label: 'North West - Kisumu' },
+];
+
 const LiveMap = ({ patients = [] }) => {
   const [selectedEntity, setSelectedEntity] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState(null);
   const [activeCHWs, setActiveCHWs] = useState([]);
+  const [showLayers, setShowLayers] = useState(false);
+  const [selectedWard, setSelectedWard] = useState(null);
 
   // Real Kenyan Healthcare Facilities
   const facilities = [
@@ -102,6 +134,42 @@ const LiveMap = ({ patients = [] }) => {
     { id: 's3', name: 'Dr. Moses Kipchoge', region: 'Rift Valley', x: 380, y: 420, contact: '+254 722 654 321' },
   ];
 
+  // Ward to facility mapping
+  const wardToFacility = {
+    'Kibera': 'f1',
+    'Embakasi': 'f1', 
+    'Langata': 'f2',
+    'Westlands': 'f2',
+    'Makadara': 'f1',
+    'Mathare': 'f1',
+    'IlalaWest': 'f3',
+    'MombasaWest': 'f3',
+    'MombasaEast': 'f3',
+    'KisauniWest': 'f3',
+    'Nyali': 'f3',
+    'Jomvu': 'f3',
+    'KigamboniWest': 'f3',
+    'Kisauni': 'f3',
+    'KadhadhWest': 'f4',
+    'CentralWest': 'f4',
+    'EastWest': 'f4',
+    'NorthWest': 'f4',
+  };
+
+  // Get referrals from patients, filtered by selected ward
+  const referrals = patients.filter(p => !selectedWard || p.ward === selectedWard).map((p, i) => ({
+    id: `ref-${i}`,
+    patient: p.fullName,
+    ward: p.ward,
+    facility: wardToFacility[p.ward] || 'f1',
+    priority: p.status || 'normal'
+  }));
+
+  // Filter facilities based on selected ward
+  const filteredFacilities = selectedWard
+    ? facilities.filter(f => Object.values(wardToFacility).includes(f.id) && wardToFacility[selectedWard] === f.id)
+    : facilities;
+
   useEffect(() => {
     // Simulate CHW status updates
     const interval = setInterval(() => {
@@ -112,13 +180,29 @@ const LiveMap = ({ patients = [] }) => {
   }, []);
 
   const runAnalysis = () => {
+    if (!selectedWard) {
+      alert('Please select a ward first to optimize referrals');
+      return;
+    }
+
     setIsAnalyzing(true);
     setTimeout(() => {
       setIsAnalyzing(false);
+      
+      // Get the facility for the selected ward
+      const facilityId = wardToFacility[selectedWard];
+      const bestFacility = facilities.find(f => f.id === facilityId) || facilities[0];
+      
+      // Generate dynamic distance and ETA based on ward
+      const distances = ['1.2km', '2.1km', '3.5km', '4.8km', '5.3km', '6.2km'];
+      const etas = ['3 mins', '5 mins', '8 mins', '10 mins', '12 mins', '15 mins'];
+      const randomIdx = Math.floor(Math.random() * distances.length);
+      
       setAnalysisResult({
-        bestMatch: facilities[0],
-        distance: '3.2km',
-        eta: '8 mins'
+        bestMatch: bestFacility,
+        distance: distances[randomIdx],
+        eta: etas[randomIdx],
+        ward: selectedWard
       });
     }, 2000);
   };
@@ -132,10 +216,16 @@ const LiveMap = ({ patients = [] }) => {
         </div>
         <button 
           onClick={runAnalysis}
-          className="px-6 py-3 bg-teal-400/10 text-teal-400 border border-teal-400/20 rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center space-x-2 hover:bg-teal-400/20 transition-all shadow-xl"
+          disabled={!selectedWard}
+          className={`px-6 py-3 rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center space-x-2 transition-all shadow-xl ${
+            selectedWard
+              ? 'bg-teal-400/10 text-teal-400 border border-teal-400/20 hover:bg-teal-400/20 cursor-pointer'
+              : 'bg-slate-500/10 text-slate-500 border border-slate-500/20 cursor-not-allowed opacity-50'
+          }`}
+          title={selectedWard ? 'Click to optimize referrals' : 'Select a ward first'}
         >
           <Activity size={16} />
-          <span>Optimize Referrals</span>
+          <span>{selectedWard ? 'Optimize Referrals' : 'Select Ward First'}</span>
         </button>
       </div>
 
@@ -163,7 +253,7 @@ const LiveMap = ({ patients = [] }) => {
             </svg>
 
             {/* Hospitals/Facilities */}
-            {facilities.map(f => (
+            {filteredFacilities.map(f => (
               <button 
                 key={f.id} 
                 onClick={() => setSelectedEntity(f)}
@@ -233,10 +323,25 @@ const LiveMap = ({ patients = [] }) => {
 
           {/* Map Controls */}
           <div className="absolute top-6 right-6 space-y-3">
-            <button className="w-12 h-12 rounded-2xl bg-slate-800/80 backdrop-blur-md border border-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-all shadow-xl hover:bg-slate-700">
+            <button 
+              onClick={() => setShowLayers(!showLayers)}
+              className={`w-12 h-12 rounded-2xl backdrop-blur-md border flex items-center justify-center transition-all shadow-xl ${
+                showLayers 
+                  ? 'bg-teal-500/30 border-teal-400 text-teal-400' 
+                  : 'bg-slate-800/80 border-slate-700 text-slate-400 hover:text-white hover:bg-slate-700'
+              }`}
+              title="Toggle layers"
+            >
               <Layers size={20} />
             </button>
-            <button className="w-12 h-12 rounded-2xl bg-slate-800/80 backdrop-blur-md border border-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-all shadow-xl hover:bg-slate-700">
+            <button 
+              onClick={() => {
+                setSelectedWard(null);
+                setShowLayers(false);
+              }}
+              className="w-12 h-12 rounded-2xl bg-slate-800/80 backdrop-blur-md border border-slate-700 flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-700 transition-all shadow-xl active:scale-95"
+              title="Reset to all wards"
+            >
               <Navigation size={20} />
             </button>
           </div>
@@ -265,6 +370,36 @@ const LiveMap = ({ patients = [] }) => {
 
         {/* Sidebar Panel */}
         <div className="flex-1 flex flex-col gap-6 min-h-0">
+          {/* Layers/Filter Panel */}
+          {showLayers && (
+            <div className="bg-slate-800/40 border border-slate-700/50 rounded-3xl p-6 animate-in slide-in-from-right-4">
+              <div className="flex items-center space-x-3 mb-4">
+                <Layers className="text-teal-400" size={20} />
+                <h3 className="text-white font-bold text-sm uppercase tracking-wider">Filter by Ward</h3>
+              </div>
+              
+              {selectedWard && (
+                <div className="mb-4 p-3 bg-teal-400/10 border border-teal-400/20 rounded-lg">
+                  <p className="text-xs text-teal-400 font-semibold">Current Selection:</p>
+                  <p className="text-white text-sm">
+                    {KENYAN_WARDS.find(w => w.value === selectedWard)?.label || selectedWard}
+                  </p>
+                </div>
+              )}
+              
+              <select 
+                value={selectedWard || ''}
+                onChange={(e) => setSelectedWard(e.target.value || null)}
+                className="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:border-teal-400/50"
+              >
+                <option value="">All Wards</option>
+                {KENYAN_WARDS.map(ward => (
+                  <option key={ward.value} value={ward.value}>{ward.label}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
           {/* AI Analysis Result */}
           {analysisResult && (
             <div className="bg-teal-400/5 border border-teal-400/20 rounded-3xl p-6 animate-in slide-in-from-right-4">
@@ -273,6 +408,14 @@ const LiveMap = ({ patients = [] }) => {
                 <h3 className="text-white font-bold text-sm uppercase tracking-wider">Closest Referral</h3>
               </div>
               <div className="space-y-4">
+                {analysisResult.ward && (
+                  <div className="p-3 bg-slate-900/50 rounded-lg border border-teal-400/15 mb-2">
+                    <p className="text-[11px] text-slate-400 uppercase tracking-wider font-semibold">Selected Ward</p>
+                    <p className="text-teal-300 text-sm font-medium">
+                      {KENYAN_WARDS.find(w => w.value === analysisResult.ward)?.label || analysisResult.ward}
+                    </p>
+                  </div>
+                )}
                 <div className="p-4 bg-slate-900/50 rounded-2xl border border-teal-400/10">
                   <p className="text-teal-400 font-black text-lg">{analysisResult.bestMatch.name}</p>
                   <p className="text-slate-400 text-xs mt-1">{analysisResult.bestMatch.type}</p>
@@ -284,6 +427,27 @@ const LiveMap = ({ patients = [] }) => {
                 <button className="w-full py-3 bg-teal-500 text-white rounded-xl font-bold uppercase tracking-widest text-[10px] shadow-lg shadow-teal-500/20 hover:bg-teal-600 transition-all">
                   Notify Facility
                 </button>
+              </div>
+            </div>
+          )}
+
+          {/* Active Referrals */}
+          {referrals.length > 0 && (
+            <div className="bg-amber-400/5 border border-amber-400/20 rounded-3xl p-6 animate-in slide-in-from-right-4">
+              <div className="flex items-center space-x-3 mb-4">
+                <AlertCircle className="text-amber-400" size={20} />
+                <h3 className="text-white font-bold text-sm uppercase tracking-wider">Active Referrals</h3>
+              </div>
+              <div className="space-y-2 max-h-40 overflow-y-auto">
+                {referrals.slice(0, 5).map(ref => (
+                  <div key={ref.id} className="p-3 bg-slate-900/50 rounded-lg border border-amber-400/10 text-sm">
+                    <p className="text-amber-400 font-semibold">{ref.patient}</p>
+                    <p className="text-slate-400 text-xs">{ref.ward}</p>
+                  </div>
+                ))}
+                {referrals.length > 5 && (
+                  <p className="text-slate-500 text-xs text-center pt-2">+{referrals.length - 5} more referrals</p>
+                )}
               </div>
             </div>
           )}

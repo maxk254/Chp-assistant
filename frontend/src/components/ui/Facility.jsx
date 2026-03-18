@@ -73,43 +73,34 @@ const Facility = ({ patients = [] }) => {
   const [patientStatuses, setPatientStatuses] = useState({});
   const [openDropdown, setOpenDropdown] = useState(null);
 
-  const incoming =
-    patients.length > 0
-      ? patients.map((p, i) => ({
-          id: p.id || i + 1,
-          fullName: p.fullName || "Unknown Patient",
-          reason: p.diagnosis || "General referral",
-          symptoms: p.symptoms || "No symptoms recorded",
-          chwName: p.chwName || "CHW",
-          referralTime: p.timestamp || "Recently",
-          priority: p.status || "normal",
-        }))
-      : [
-          {
-            id: 1,
-            fullName: "Samuel Karanja",
-            reason: "Diabetes complication",
-            symptoms: "Fatigue, increased thirst, blurred vision",
-            chwName: "Jane Wambui",
-            referralTime: "2 days ago",
-            priority: "urgent",
-          },
-          {
-            id: 2,
-            fullName: "Mercy Njeri",
-            reason: "Post-partum follow-up",
-            symptoms: "Mild dizziness, normal vitals",
-            chwName: "David Kariuki",
-            referralTime: "Today",
-            priority: "high",
-          },
-        ];
+  const incoming = patients.map((p, i) => ({
+    id: p.id || i + 1,
+    fullName: p.fullName || "Unknown Patient",
+    reason: p.diagnosis || "General referral",
+    symptoms: p.symptoms || "No symptoms recorded",
+    chwName: p.chwName || "CHW",
+    referralTime: p.timestamp || "Recently",
+    priority: p.status || "normal",
+  }));
 
   const pendingCount = incoming.filter(
     (r) =>
       String(r.priority).toLowerCase() === "urgent" ||
-      String(r.priority).toLowerCase() === "high",
+      String(r.priority).toLowerCase() === "high"
   ).length;
+
+  // Calculate dynamic metrics
+  const uniqueCHWs = new Set(patients.map(p => p.chwName)).size;
+  const referralsReceived = patients.length;
+  const patientsAttended = Object.keys(patientStatuses).length;
+
+  const handleAcceptAll = () => {
+    const newStatuses = {};
+    incoming.forEach(referral => {
+      newStatuses[referral.id] = "Arrived";
+    });
+    setPatientStatuses(newStatuses);
+  };
 
   return (
     <div className="max-w-7xl mx-auto py-8 px-8 space-y-8">
@@ -133,22 +124,22 @@ const Facility = ({ patients = [] }) => {
         <MetricCard
           icon={Users}
           label="CHAs Linked"
-          value="34"
-          subtext="Across 3 sub-counties"
+          value={uniqueCHWs.toString()}
+          subtext=""
           accent="teal"
         />
         <MetricCard
           icon={ArrowDownLeft}
           label="Referrals Received"
-          value="27"
-          subtext="This month"
+          value={referralsReceived.toString()}
+          subtext=""
           accent="amber"
         />
         <MetricCard
           icon={ClipboardCheck}
           label="Patients Attended"
-          value="19"
-          subtext="8 pending appointments"
+          value={patientsAttended.toString()}
+          subtext=""
           accent="emerald"
         />
       </section>
@@ -161,7 +152,9 @@ const Facility = ({ patients = [] }) => {
               Review and accept pending referrals
             </p>
           </div>
-          <button className="bg-linear-to-r from-emerald-500 to-teal-400 hover:to-emerald-400 text-white font-bold py-3 px-5 rounded-2xl shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 transition-all flex items-center gap-2 w-fit">
+          <button 
+            onClick={handleAcceptAll}
+            className="bg-linear-to-r from-emerald-500 to-teal-400 hover:to-emerald-400 text-white font-bold py-3 px-5 rounded-2xl shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 transition-all flex items-center gap-2 w-fit">
             <CheckCircle2 size={18} />
             <span className="uppercase tracking-widest text-xs">
               Accept All Pending

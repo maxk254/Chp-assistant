@@ -32,9 +32,9 @@ function App() {
       case 'supervisor':
         return <SupervisorDashboard patients={patients} />;
       case 'facility':
-        return <FacilityDashboard />;
+        return <FacilityDashboard patients={patients} />;
       case 'live':
-        return <LiveMap />;
+        return <LiveMap patients={patients} />;
       default:
         return <CHW onAnalyze={handleAnalyze} onSave={handleSavePatient} patients={patients} />;
     }

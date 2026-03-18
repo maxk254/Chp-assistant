@@ -55,7 +55,7 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-const CHW = ({ onAnalyze, patients = [] }) => {
+const CHW = ({ onAnalyze, onSave, patients = [] }) => {
   const [formData, setFormData] = useState({
     fullName: '',
     ward: '',
@@ -67,6 +67,26 @@ const CHW = ({ onAnalyze, patients = [] }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     onAnalyze(formData);
+  };
+
+  const handleSavePatient = () => {
+    if (onSave) {
+      onSave({
+        ...formData,
+        diagnosis: formData.symptoms,
+        chwName: 'CHW', // Default, can be updated later
+        timestamp: new Date().toLocaleString(),
+        id: Date.now()
+      });
+      // Reset form after saving
+      setFormData({
+        fullName: '',
+        ward: '',
+        age: '',
+        history: '',
+        symptoms: ''
+      });
+    }
   };
 
   return (
@@ -164,6 +184,15 @@ const CHW = ({ onAnalyze, patients = [] }) => {
               className="w-full bg-gradient-to-r from-emerald-500 to-teal-400 hover:to-emerald-400 text-white font-bold py-5 rounded-2xl shadow-xl shadow-emerald-500/20 hover:shadow-emerald-500/40 transform hover:-translate-y-1 transition-all flex items-center justify-center space-x-3 group active:scale-95"
             >
               <span className="text-lg uppercase tracking-widest">Run AI Diagnostic</span>
+              <ChevronRight className="group-hover:translate-x-1 transition-transform" />
+            </button>
+
+            <button
+              type="button"
+              onClick={handleSavePatient}
+              className="w-full bg-gradient-to-r from-teal-500 to-cyan-400 hover:to-teal-400 text-white font-bold py-5 rounded-2xl shadow-xl shadow-teal-500/20 hover:shadow-teal-500/40 transform hover:-translate-y-1 transition-all flex items-center justify-center space-x-3 group active:scale-95"
+            >
+              <span className="text-lg uppercase tracking-widest">Save Patient Record</span>
               <ChevronRight className="group-hover:translate-x-1 transition-transform" />
             </button>
           </form>
