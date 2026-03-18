@@ -1,7 +1,12 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import {
+  login as loginService,
+  register as registerService,
+} from "@/services/authService";
 import {
   Select,
   SelectContent,
@@ -17,6 +22,7 @@ const TABS = [
 
 //  to be completed later after backend implementation is done.
 export default function LoginPage() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("login");
 
   // Login
@@ -26,6 +32,7 @@ export default function LoginPage() {
   // Register
   const [regName, setRegName] = useState("");
   const [regEmail, setRegEmail] = useState("");
+  const [regPhone, setRegPhone] = useState("");
   const [regPassword, setRegPassword] = useState("");
   const [regConfirm, setRegConfirm] = useState("");
   const [regUserType, setRegUserType] = useState("");
@@ -34,19 +41,36 @@ export default function LoginPage() {
   const [forgotEmail, setForgotEmail] = useState("");
   const [forgotSent, setForgotSent] = useState(false);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    // TODO: authService.login({ email: loginEmail, password: loginPassword })
+    try {
+      await loginService(loginEmail, loginPassword);
+      navigate("/", { replace: true });
+    } catch (error) {
+      console.error(
+        "Login failed:",
+        error?.response?.data?.message || error.message,
+      );
+    }
   };
 
-  const handleRegister = (e) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
-    // TODO: authService.register({
-    //   name: regName,
-    //   email: regEmail,
-    //   password: regPassword,
-    //   userType: regUserType,
-    // })
+    try {
+      await registerService(
+        regName,
+        regUserType,
+        regEmail,
+        regPhone,
+        regPassword,
+      );
+      navigate("/", { replace: true });
+    } catch (error) {
+      console.error(
+        "Registration failed:",
+        error?.response?.data?.message || error.message,
+      );
+    }
   };
 
   const handleForgot = (e) => {
@@ -192,6 +216,16 @@ export default function LoginPage() {
                 placeholder="you@example.com"
                 value={regEmail}
                 onChange={(e) => setRegEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Phone Number</label>
+              <Input
+                type="tel"
+                placeholder="0712345678"
+                value={regPhone}
+                onChange={(e) => setRegPhone(e.target.value)}
                 required
               />
             </div>
