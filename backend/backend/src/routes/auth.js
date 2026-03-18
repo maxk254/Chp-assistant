@@ -63,7 +63,7 @@ router.post("/verify-otp", async (req, res) => {
 
   const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: "1h" });
 
-  delete otpStore[phone]; // Remove OTP after verification
+  delete otpStore[phone]; 
   res.json({ token, role: user.role });
 });
 
