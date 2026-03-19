@@ -1,21 +1,24 @@
-const authService = require("../services/auth.service");
+import authService from "../services/auth.service.js";
 
-exports.requestOtp = async (req, res) => {
+export const requestOtp = async (req, res) => {
   const { phone } = req.body;
   const response = await authService.requestOtp(phone);
-  res.json(response);
+  res.status(response.status).json(response);
 };
 
-exports.verifyOtp = async (req, res) => {
+export const verifyOtp = async (req, res) => {
   const { phone, otp } = req.body;
   const response = await authService.verifyOtp(phone, otp);
-  res.json(response);
+  res.status(response.status).json(response);
 };
 
-exports.supervisorLogin = async (req, res) => {
+export const supervisorLogin = async (req, res) => {
   const { email, password } = req.body;
   const response = await authService.supervisorLogin(email, password);
-  res.json(response);
+  res.status(response.status).json(response);
 };
 
-// commit changes by emmanuel riri
+export const signup = async (req, res) => {
+  const response = await authService.signup(req.body);
+  res.status(response.status).json(response);
+};
