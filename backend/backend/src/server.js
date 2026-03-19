@@ -47,7 +47,7 @@ app.get("/health", (req, res) => {
 });
 
 // USSD Routes
-app.post("ussd", ussdHandler);
+app.post("/ussd", ussdHandler);
 
 // API Routes
 app.use("/api/sessions", sessionsRoutes);
