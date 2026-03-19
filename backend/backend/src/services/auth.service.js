@@ -123,3 +123,10 @@ const authService = {
 };
 
 export default authService;
+
+
+// for audia to see
+
+// MONGODB_URI=mongodb+srv://riri:123456123456@chpassistant.oae2rti.mongodb.net/chp_assistant?retryWrites=true&w=majority&appName=chpAssistant
+// PORT=3000
+// JWT_SECRET=change_this_secret_in_production
