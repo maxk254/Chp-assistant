@@ -244,24 +244,32 @@ export default async (req, res) => {
         // ── Call AI Service ─────────────────────────
         let diagnosis;
         try {
+          const AI_URL = process.env.AI_SERVICE_URL || "http://localhost:3001";
+          console.log(" Calling AI at:", AI_URL);
+
           const { data } = await axios.post(
-            `${process.env.AI_SERVICE_URL}/diagnose`,
+            `${AI_URL}/diagnose`,
             {
-              patient_age:    patient.age,
+              patient_age: patient.age,
               patient_gender: patient.gender,
-              symptoms
-            }
+              symptoms,
+            },
+            { timeout: 15000 }, // 15 second timeout
           );
+
+          diagnosis = data;
+          console.log("✅ AI responded:", diagnosis.severity);
           diagnosis = data;
         } catch (err) {
-          console.error('AI Service unreachable:', err.message);
+          console.error("AI Service unreachable:", err.message);
           diagnosis = {
-            severity:            'HIGH',
-            possible_conditions: ['Unable to assess — manual review needed'],
-            immediate_actions:   ['Refer to nearest facility immediately'],
-            refer_to_facility:   true,
-            facility_type:       'health_centre',
-            chp_instructions:    'AI unavailable. Refer to nearest health centre immediately.'
+            severity: "HIGH",
+            possible_conditions: ["Unable to assess — manual review needed"],
+            immediate_actions: ["Refer to nearest facility immediately"],
+            refer_to_facility: true,
+            facility_type: "health_centre",
+            chp_instructions:
+              "AI unavailable. Refer to nearest health centre immediately.",
           };
         }
 
