@@ -2,8 +2,15 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
-const JWT_SECRET = process.env.JWT_SECRET;
 let otpStore = {};
+
+function getJwtSecret() {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error("JWT_SECRET is not set");
+  }
+  return secret;
+}
 
 const authService = {
   async requestOtp(phone) {
@@ -38,7 +45,7 @@ const authService = {
       return { error: "User not found", status: 400 };
     }
 
-    const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, {
+    const token = jwt.sign({ id: user._id, role: user.role }, getJwtSecret(), {
       expiresIn: "1h",
     });
 
@@ -66,9 +73,13 @@ const authService = {
         return { error: "Invalid password", status: 400 };
       }
 
-      const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, {
-        expiresIn: "1h",
-      });
+      const token = jwt.sign(
+        { id: user._id, role: user.role },
+        getJwtSecret(),
+        {
+          expiresIn: "1h",
+        },
+      );
 
       return { token, role: user.role, status: 200 };
     } catch (err) {
