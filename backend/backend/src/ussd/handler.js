@@ -90,7 +90,7 @@ export default async (req, res) => {
       sessionStore[sessionId] = {};
 
       return res.send(
-        `CON Afya AI 🏥\n` +
+        `CON CHP AI ASSISTANT \n` +
         `Hello ${chp.name}\n` +
         `Ward: ${chp.ward}\n\n` +
         `1. New Patient Visit\n` +
