@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   Clock3,
   MapPin,
+  BarChart3,
 } from "lucide-react";
 import CHWprofile from "./CHWprofile";
 
@@ -79,47 +80,29 @@ const getInitials = (name = "") =>
     .map((n) => n[0]?.toUpperCase() || "")
     .join("");
 
-const chws = [
-  {
-    id: 1,
-    name: "Jane Wambui",
-    zone: "Sub-zone A · Ward 4",
-    sessions: 18,
-    referrals: 5,
-    lastSeen: "2 hrs ago",
-    status: "active",
-  },
-  {
-    id: 2,
-    name: "David Kariuki",
-    zone: "Sub-zone B · Ward 7",
-    sessions: 14,
-    referrals: 3,
-    lastSeen: "4 hrs ago",
-    status: "active",
-  },
-  {
-    id: 3,
-    name: "Esther Njuguna",
-    zone: "Sub-zone C · Ward 12",
-    sessions: 9,
-    referrals: 2,
-    lastSeen: "Yesterday",
-    status: "inactive",
-  },
-  {
-    id: 4,
-    name: "Peter Mwangi",
-    zone: "Sub-zone A · Ward 2",
-    sessions: 21,
-    referrals: 7,
-    lastSeen: "1 hr ago",
-    status: "alert",
-  },
-];
-
-const Supervisor = ({ patients = [] }) => {
+const Supervisor = ({ patients = [], chws = [], supervisorName = 'Supervisor' }) => {
   const [selectedChw, setSelectedChw] = useState(null);
+
+  // Calculate dynamic metrics
+  const activeCHWs = chws.filter(c => c.status === 'active').length;
+  const sessionsCompleted = chws.reduce((sum, c) => sum + (c.sessions || 0), 0);
+  const householdsVisited = chws.reduce((sum, c) => sum + (c.patients || 0), 0);
+  const referralsIssued = patients.length;
+
+  // Calculate disease statistics from patient data
+  const diseaseStats = {};
+  patients.forEach(patient => {
+    const disease = patient.diagnosis || patient.symptoms || 'Unknown Condition';
+    diseaseStats[disease] = (diseaseStats[disease] || 0) + 1;
+  });
+
+  // Convert to array and sort by count (descending)
+  const sortedDiseases = Object.entries(diseaseStats)
+    .map(([disease, count]) => ({ disease, count }))
+    .sort((a, b) => b.count - a.count);
+
+  // Get max count for scaling the bars
+  const maxDiseaseCount = sortedDiseases.length > 0 ? Math.max(...sortedDiseases.map(d => d.count)) : 0;
 
   if (selectedChw) {
     return <CHWprofile chw={selectedChw} onBack={() => setSelectedChw(null)} />;
@@ -129,17 +112,19 @@ const Supervisor = ({ patients = [] }) => {
     <div className="max-w-7xl mx-auto py-8 px-8 space-y-8">
       {/* Header */}
       <section className="bg-slate-800/40 backdrop-blur-xl border border-slate-700/50 rounded-3xl p-8">
-        <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-teal-400/10 border border-teal-400/20 flex items-center justify-center">
-            <Activity className="text-teal-400" size={24} />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-white tracking-tight">
-              Supervisor Dashboard
-            </h1>
-            <p className="text-slate-400 text-sm">
-              Githunguri Sub-County · Kiambu County · CHP Oversight
-            </p>
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-start gap-4 flex-1">
+            <div className="w-12 h-12 rounded-2xl bg-teal-400/10 border border-teal-400/20 flex items-center justify-center">
+              <Activity className="text-teal-400" size={24} />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-white tracking-tight">
+                Supervisor Dashboard
+              </h1>
+              <p className="text-slate-400 text-sm">
+                Managed by {supervisorName} · Githunguri Sub-County · Kiambu County
+              </p>
+            </div>
           </div>
         </div>
       </section>
@@ -149,29 +134,29 @@ const Supervisor = ({ patients = [] }) => {
         <MetricCard
           icon={Users}
           label="Active CHPs Today"
-          value="18"
-          subtext="of 24 total"
+          value={activeCHWs.toString()}
+          subtext=""
           accent="teal"
         />
         <MetricCard
           icon={ClipboardCheck}
           label="Sessions Completed"
-          value="143"
-          subtext="Target: 160"
+          value={sessionsCompleted.toString()}
+          subtext=""
           accent="emerald"
         />
         <MetricCard
           icon={Home}
           label="Households Visited"
-          value="213"
-          subtext="Across 6 sub-zones"
+          value={householdsVisited.toString()}
+          subtext=""
           accent="amber"
         />
         <MetricCard
           icon={AlertTriangle}
           label="Referrals Issued"
-          value="27"
-          subtext="11 urgent · 16 routine"
+          value={referralsIssued.toString()}
+          subtext=""
           accent="red"
         />
       </section>
@@ -191,7 +176,8 @@ const Supervisor = ({ patients = [] }) => {
         </div>
 
         <div className="space-y-4">
-          {chws.map((chw) => (
+          {chws.length > 0 ? (
+            chws.map((chw) => (
             <div
               key={chw.id}
               className="bg-slate-900/50 border border-slate-700 rounded-xl p-4 hover:border-teal-400/30 transition cursor-pointer"
@@ -249,15 +235,109 @@ const Supervisor = ({ patients = [] }) => {
                 </div>
               </div>
             </div>
-          ))}
+            ))
+          ) : (
+            <div className="text-center py-12 text-slate-400">
+              <p className="text-sm">No CHW data available yet</p>
+            </div>
+          )}
         </div>
 
         <div className="mt-6 pt-5 border-t border-slate-700/60 text-sm text-slate-400">
           Active CHPs right now:{" "}
           <span className="text-white font-semibold">
-            {chws.filter((c) => c.status === "active").length}
+            {chws.length > 0 ? chws.filter((c) => c.status === "active").length : 0}
           </span>
         </div>
+      </section>
+
+      {/* Disease Tracking Section */}
+      <section className="bg-slate-800/40 backdrop-blur-xl border border-slate-700/50 rounded-3xl p-8">
+        <div className="flex items-start gap-4 mb-8">
+          <div className="w-12 h-12 rounded-2xl bg-red-400/10 border border-red-400/20 flex items-center justify-center">
+            <BarChart3 className="text-red-400" size={24} />
+          </div>
+          <div>
+            <h2 className="text-xl font-bold text-white">Disease Outbreak Tracking</h2>
+            <p className="text-slate-400 text-sm">
+              Disease cases by diagnosis - {sortedDiseases.length > 0 ? `${patients.length} total cases` : 'No patient data yet'}
+            </p>
+          </div>
+        </div>
+
+        {sortedDiseases.length > 0 ? (
+          <div className="space-y-6">
+            {sortedDiseases.map((item, index) => {
+              const percentage = Math.round((item.count / maxDiseaseCount) * 100);
+              const colors = [
+                'bg-red-500',
+                'bg-orange-500',
+                'bg-amber-500',
+                'bg-yellow-500',
+                'bg-emerald-500',
+                'bg-cyan-500',
+                'bg-blue-500',
+                'bg-purple-500',
+              ];
+              const color = colors[index % colors.length];
+              const textColor = color.replace('bg-', 'text-');
+
+              return (
+                <div key={item.disease} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white font-semibold text-sm truncate">{item.disease}</p>
+                      <p className="text-slate-400 text-xs">Cases reported</p>
+                    </div>
+                    <div className="text-right ml-4">
+                      <p className={`font-black text-lg ${textColor}`}>{item.count}</p>
+                      <p className="text-slate-400 text-xs">{percentage}%</p>
+                    </div>
+                  </div>
+                  
+                  <div className="relative w-full h-8 bg-slate-900/50 rounded-lg overflow-hidden border border-slate-700/50">
+                    <div
+                      className={`h-full ${color} rounded-lg transition-all duration-500 ease-out flex items-center justify-end pr-3`}
+                      style={{ width: `${percentage}%` }}
+                    >
+                      {percentage > 15 && (
+                        <span className="text-white text-xs font-bold">{item.count}</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* Summary Stats */}
+            <div className="mt-8 pt-6 border-t border-slate-700/60 grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700/50">
+                <p className="text-slate-400 text-xs uppercase tracking-wider font-semibold mb-1">Total Cases</p>
+                <p className="text-white text-2xl font-bold">{patients.length}</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700/50">
+                <p className="text-slate-400 text-xs uppercase tracking-wider font-semibold mb-1">Conditions</p>
+                <p className="text-white text-2xl font-bold">{sortedDiseases.length}</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700/50">
+                <p className="text-slate-400 text-xs uppercase tracking-wider font-semibold mb-1">Most Common</p>
+                <p className="text-emerald-400 text-sm font-semibold truncate">{sortedDiseases[0]?.disease || 'N/A'}</p>
+              </div>
+              <div className="bg-slate-900/50 rounded-lg p-4 border border-slate-700/50">
+                <p className="text-slate-400 text-xs uppercase tracking-wider font-semibold mb-1">Highest Count</p>
+                <p className="text-red-400 text-2xl font-bold">{sortedDiseases[0]?.count || 0}</p>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="text-center py-16 text-slate-400">
+            <div className="w-16 h-16 rounded-full bg-slate-700/50 flex items-center justify-center mx-auto mb-4">
+              <BarChart3 size={32} className="text-slate-500" />
+            </div>
+            <p className="text-sm font-medium">No disease data available yet</p>
+            <p className="text-xs mt-1">Patient diagnoses will appear here as CHWs submit patient data</p>
+          </div>
+        )}
       </section>
     </div>
   );

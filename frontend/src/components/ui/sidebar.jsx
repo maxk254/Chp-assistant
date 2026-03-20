@@ -40,14 +40,39 @@ const SidebarItem = ({ icon: Icon, label, active, onClick }) => (
   </button>
 );
 
-const Sidebar = ({ currentTab, setTab }) => {
-  const menuItems = [
-    { id: "chw", icon: LayoutDashboard, label: "Dash" },
-    { id: "facility", icon: Hospital, label: "Facility" },
-    { id: "supervisor", icon: UserCheck, label: "Supervisor" },
-    { id: "map", icon: MapIcon, label: "Live Map" },
-    { id: "settings", icon: SettingsIcon, label: "Settings" },
-  ];
+const Sidebar = ({ currentTab, setTab, role = "CHW", onLogout }) => {
+  // Define menu items based on role
+  const getMenuItems = () => {
+    const commonItems = [
+      { id: "map", icon: MapIcon, label: "Live Map" },
+      { id: "settings", icon: SettingsIcon, label: "Settings" },
+    ];
+
+    const roleSpecificItems = {
+      CHW: [
+        { id: "chw", icon: LayoutDashboard, label: "Dashboard" },
+        ...commonItems,
+      ],
+      Supervisor: [
+        { id: "supervisor", icon: UserCheck, label: "Dashboard" },
+        ...commonItems,
+      ],
+      Facility: [
+        { id: "facility", icon: Hospital, label: "Dashboard" },
+        ...commonItems,
+      ],
+    };
+
+    return roleSpecificItems[role] || roleSpecificItems.CHW;
+  };
+
+  const menuItems = getMenuItems();
+
+  const handleLogout = () => {
+    if (onLogout) {
+      onLogout();
+    }
+  };
 
   return (
     <div className="w-40 h-screen bg-slate-900 border-r border-slate-700/50 flex flex-col items-center py-8 fixed left-0 top-0 z-50 backdrop-blur-xl">
@@ -77,7 +102,7 @@ const Sidebar = ({ currentTab, setTab }) => {
           />
         </button>
 
-        <button className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-500 hover:text-red-400 hover:bg-red-400/10 transition-all duration-300">
+        <button className="w-10 h-10 rounded-xl flex items-center justify-center text-slate-500 hover:text-red-400 hover:bg-red-400/10 transition-all duration-300" onClick={handleLogout}>
           <LogOut size={20} />
         </button>
       </div>

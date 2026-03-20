@@ -1,52 +1,56 @@
-
-import React, { useState } from 'react';
-import Sidebar from './components/ui/sidebar';
-import TopBar from './components/topbar';
-import CHW from './components/ui/CHW';
-import Supervisor from './components/ui/Supervisor';
-import Facility from './components/ui/Facility';
-import LiveMap from './components/ui/livemap';
-import Settings from './components/ui/Settings';
+import { Routes, Route } from "react-router-dom";
+import WelcomePage from "./pages/WelcomePage";
+import CHWPage from "./pages/CHWPage";
+import SupervisorPage from "./pages/SupervisorPage";
+import FacilityPage from "./pages/FacilityPage";
+import Home from "./pages/Home";
+import LoginPage from "./pages/LoginPage";
+import RoleProtectedRoute from "./components/auth/RoleProtectedRoute";
+import { UserProvider } from "./context/UserContext";
+import { PatientDataProvider } from "./context/PatientDataContext";
 
 function App() {
-  const [currentTab, setCurrentTab] = useState('chw');
-
-  const handleAnalyze = (data) => {
-    console.log('Analysis data:', data);
-  };
-
-  const renderContent = () => {
-    try {
-      switch (currentTab) {
-        case 'chw':
-          return <CHW onAnalyze={handleAnalyze} />;
-        case 'supervisor':
-          return <Supervisor />;
-        case 'facility':
-          return <Facility />;
-        case 'map':
-          return <LiveMap />;
-        case 'settings':
-          return <Settings />;
-        default:
-          return <CHW onAnalyze={handleAnalyze} />;
-      }
-    } catch (error) {
-      console.error('Render error:', error);
-      return <div className="text-white p-4">Error loading dashboard</div>;
-    }
-  };
-
   return (
-    <div className="w-full h-screen flex bg-dark-900">
-      <Sidebar currentTab={currentTab} setTab={setCurrentTab} />
-      <main className="flex-1 flex flex-col overflow-hidden">
-        <TopBar />
-        <div className="flex-1 overflow-y-auto">
-          {renderContent()}
-        </div>
-      </main>
-    </div>
+    <UserProvider>
+      <PatientDataProvider>
+        <Routes>
+          <Route path="/" element={<WelcomePage />} />
+          <Route path="/login" element={<LoginPage />} />
+
+          {/* CHW Dashboard - only accessible by CHW role users */}
+          <Route
+            path="/chw"
+            element={
+              <RoleProtectedRoute allowedRoles={["CHW"]}>
+                <CHWPage />
+              </RoleProtectedRoute>
+            }
+          />
+
+          {/* Supervisor Dashboard - only accessible by Supervisor role users */}
+          <Route
+            path="/supervisor"
+            element={
+              <RoleProtectedRoute allowedRoles={["Supervisor"]}>
+                <SupervisorPage />
+              </RoleProtectedRoute>
+            }
+          />
+
+          {/* Facility Dashboard - only accessible by Facility role users */}
+          <Route
+            path="/facility"
+            element={
+              <RoleProtectedRoute allowedRoles={["Facility"]}>
+                <FacilityPage />
+              </RoleProtectedRoute>
+            }
+          />
+
+          <Route path="/home" element={<Home />} />
+        </Routes>
+      </PatientDataProvider>
+    </UserProvider>
   );
 }
 

@@ -1,42 +1,85 @@
-import React, { useState } from 'react';
-import { 
-  User, MapPin, Calendar, ClipboardList, Activity, 
-  ChevronRight, AlertCircle, Clock
-} from 'lucide-react';
+import React, { useState } from "react";
+import {
+  User,
+  MapPin,
+  Calendar,
+  ClipboardList,
+  Activity,
+  ChevronRight,
+  AlertCircle,
+  Clock,
+  AlertTriangle,
+  Stethoscope,
+  History,
+} from "lucide-react";
+import { KENYAN_WARDS } from "@/data";
 
 const StatusBadge = ({ status }) => {
   const styles = {
     high: "bg-red-500/10 text-red-500 border-red-500/20",
     medium: "bg-amber-500/10 text-amber-500 border-amber-500/20",
     low: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
-    default: "bg-slate-500/10 text-slate-500 border-slate-500/20"
+    default: "bg-slate-500/10 text-slate-500 border-slate-500/20",
   };
-  
-  const currentStyle = styles[status.toLowerCase()] || styles.default;
-  
+
+  const normalizedStatus = String(status || "default").toLowerCase();
+  const currentStyle = styles[normalizedStatus] || styles.default;
+
   return (
-    <span className={`px-3 py-1 rounded-full text-xs font-bold border uppercase tracking-wider flex items-center w-fit ${currentStyle}`}>
-      <span className={`w-1.5 h-1.5 rounded-full mr-2 ${
-        status.toLowerCase() === 'high' ? 'bg-red-500' : 
-        status.toLowerCase() === 'medium' ? 'bg-amber-500' : 'bg-emerald-500'
-      } animate-pulse`} />
+    <span
+      className={`px-3 py-1 rounded-full text-xs font-bold border uppercase tracking-wider flex items-center w-fit ${currentStyle}`}
+    >
+      <span
+        className={`w-1.5 h-1.5 rounded-full mr-2 ${
+          normalizedStatus === "high"
+            ? "bg-red-500"
+            : normalizedStatus === "medium"
+              ? "bg-amber-500"
+              : "bg-emerald-500"
+        } animate-pulse`}
+      />
       {status}
     </span>
   );
 };
 
-const CHW = ({ onAnalyze, patients = [] }) => {
+const CHW = ({
+  onAnalyze,
+  onSave,
+  patients = [],
+  analysisResults = null,
+  isAnalyzing = false,
+  analyzeError = "",
+  canSave = false,
+}) => {
   const [formData, setFormData] = useState({
-    fullName: '',
-    ward: '',
-    age: '',
-    history: '',
-    symptoms: ''
+    fullName: "",
+    ward: "",
+    age: "",
+    history: "",
+    symptoms: "",
   });
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onAnalyze(formData);
+    if (onAnalyze) {
+      await onAnalyze(formData);
+    }
+  };
+
+  const handleSavePatient = async () => {
+    if (onSave) {
+      const saved = await onSave(formData);
+      if (saved) {
+        setFormData({
+          fullName: "",
+          ward: "",
+          age: "",
+          history: "",
+          symptoms: "",
+        });
+      }
+    }
   };
 
   return (
@@ -49,8 +92,12 @@ const CHW = ({ onAnalyze, patients = [] }) => {
               <Activity className="text-teal-400" size={24} />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-white tracking-tight">Patient Diagnostic Form</h2>
-              <p className="text-slate-400 text-sm">Input data for AI-powered assessment</p>
+              <h2 className="text-2xl font-bold text-white tracking-tight">
+                Patient Diagnostic Form
+              </h2>
+              <p className="text-slate-400 text-sm">
+                Input data for AI-powered assessment
+              </p>
             </div>
           </div>
 
@@ -65,24 +112,31 @@ const CHW = ({ onAnalyze, patients = [] }) => {
                   placeholder="Enter patient name..."
                   className="w-full bg-slate-900/50 border border-slate-700 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-teal-400/50 focus:ring-4 focus:ring-teal-400/5 transition-all placeholder:text-slate-600"
                   value={formData.fullName}
-                  onChange={(e) => setFormData({...formData, fullName: e.target.value})}
+                  onChange={(e) =>
+                    setFormData({ ...formData, fullName: e.target.value })
+                  }
                   required
                 />
               </div>
 
               <div className="space-y-2">
                 <label className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center">
-                  <MapPin size={14} className="mr-2 text-teal-400" /> Assigned Ward
+                  <MapPin size={14} className="mr-2 text-teal-400" /> Assigned
+                  Ward
                 </label>
                 <select
                   className="w-full bg-slate-900/50 border border-slate-700 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-teal-400/50 focus:ring-4 focus:ring-teal-400/5 transition-all appearance-none cursor-pointer"
                   value={formData.ward}
-                  onChange={(e) => setFormData({...formData, ward: e.target.value})}
+                  onChange={(e) =>
+                    setFormData({ ...formData, ward: e.target.value })
+                  }
                   required
                 >
                   <option value="">Select Ward Location</option>
-                  {[...Array(40)].map((_, i) => (
-                    <option key={i+1} value={`Ward ${i+1}`}>Ward {i+1}</option>
+                  {KENYAN_WARDS.map((ward) => (
+                    <option key={ward.value} value={ward.value}>
+                      {ward.label}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -90,69 +144,248 @@ const CHW = ({ onAnalyze, patients = [] }) => {
 
             <div className="space-y-2">
               <label className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center">
-                <Calendar size={14} className="mr-2 text-teal-400" /> Patient Age
+                <Calendar size={14} className="mr-2 text-teal-400" /> Patient
+                Age
               </label>
               <input
                 type="number"
                 placeholder="Years"
                 className="w-24 bg-slate-900/50 border border-slate-700 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-teal-400/50 focus:ring-4 focus:ring-teal-400/5 transition-all"
                 value={formData.age}
-                onChange={(e) => setFormData({...formData, age: e.target.value})}
+                onChange={(e) =>
+                  setFormData({ ...formData, age: e.target.value })
+                }
                 required
               />
             </div>
 
             <div className="space-y-2">
               <label className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center">
-                <AlertCircle size={14} className="mr-2 text-teal-400" /> Medical History
+                <AlertCircle size={14} className="mr-2 text-teal-400" /> Medical
+                History
               </label>
               <textarea
                 placeholder="Any pre-existing conditions, allergies..."
                 rows="3"
                 className="w-full bg-slate-900/50 border border-slate-700 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-teal-400/50 focus:ring-4 focus:ring-teal-400/5 transition-all resize-none placeholder:text-slate-600"
                 value={formData.history}
-                onChange={(e) => setFormData({...formData, history: e.target.value})}
+                onChange={(e) =>
+                  setFormData({ ...formData, history: e.target.value })
+                }
               />
             </div>
 
             <div className="space-y-2">
               <label className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center">
-                <Clock size={14} className="mr-2 text-teal-400" /> Current Signs & Symptoms
+                <Clock size={14} className="mr-2 text-teal-400" /> Current Signs
+                & Symptoms
               </label>
               <textarea
                 placeholder="Fever, nausea, joint pain..."
                 rows="4"
                 className="w-full bg-slate-900/50 border border-slate-700 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-teal-400/50 focus:ring-4 focus:ring-teal-400/5 transition-all resize-none placeholder:text-slate-600"
                 value={formData.symptoms}
-                onChange={(e) => setFormData({...formData, symptoms: e.target.value})}
+                onChange={(e) =>
+                  setFormData({ ...formData, symptoms: e.target.value })
+                }
                 required
               />
             </div>
 
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-emerald-500 to-teal-400 hover:to-emerald-400 text-white font-bold py-5 rounded-2xl shadow-xl shadow-emerald-500/20 hover:shadow-emerald-500/40 transform hover:-translate-y-1 transition-all flex items-center justify-center space-x-3 group active:scale-95"
+              disabled={isAnalyzing}
+              className="w-full bg-linear-to-r from-emerald-500 to-teal-400 hover:to-emerald-400 text-white font-bold py-5 rounded-2xl shadow-xl shadow-emerald-500/20 hover:shadow-emerald-500/40 transform hover:-translate-y-1 transition-all flex items-center justify-center space-x-3 group active:scale-95"
             >
-              <span className="text-lg uppercase tracking-widest">Run AI Diagnostic</span>
+              <span className="text-lg uppercase tracking-widest">
+                {isAnalyzing ? "Running AI Diagnostic..." : "Run AI Diagnostic"}
+              </span>
               <ChevronRight className="group-hover:translate-x-1 transition-transform" />
             </button>
+
+            <button
+              type="button"
+              onClick={handleSavePatient}
+              disabled={!canSave}
+              className="w-full bg-linear-to-r from-teal-500 to-cyan-400 hover:to-teal-400 text-white font-bold py-5 rounded-2xl shadow-xl shadow-teal-500/20 hover:shadow-teal-500/40 transform hover:-translate-y-1 transition-all flex items-center justify-center space-x-3 group active:scale-95"
+            >
+              <span className="text-lg uppercase tracking-widest">
+                Save Patient Record
+              </span>
+              <ChevronRight className="group-hover:translate-x-1 transition-transform" />
+            </button>
+
+            {!canSave && (
+              <p className="text-xs text-amber-300/90 text-center">
+                Run AI Diagnostic first before saving this patient record.
+              </p>
+            )}
+
+            {analyzeError && (
+              <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
+                <p className="text-red-300 text-sm font-medium">
+                  {analyzeError}
+                </p>
+              </div>
+            )}
+
+            {analysisResults && (
+              <div className="bg-slate-900/50 border border-slate-700 rounded-2xl p-5 space-y-4">
+                <h4 className="text-white font-bold text-base">
+                  AI Diagnostic Output
+                </h4>
+
+                <div>
+                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                    Diagnosis
+                  </p>
+                  <p className="text-teal-300 font-semibold text-sm">
+                    {analysisResults.diagnosis || "Pending"}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                      Confidence
+                    </p>
+                    <p className="text-slate-200 text-sm">
+                      {analysisResults.confidence || "N/A"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                      Emergency Level
+                    </p>
+                    <p className="text-slate-200 text-sm">
+                      {analysisResults.emergencyLevel || "MEDIUM"}
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                    Recommended Facility
+                  </p>
+                  <p className="text-slate-200 text-sm">
+                    {analysisResults.recommendedFacility || "Not specified"}
+                  </p>
+                </div>
+
+                {Array.isArray(analysisResults.recommendations) &&
+                  analysisResults.recommendations.length > 0 && (
+                    <div>
+                      <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
+                        Recommendations
+                      </p>
+                      <ul className="space-y-1">
+                        {analysisResults.recommendations.map(
+                          (recommendation, index) => (
+                            <li
+                              key={`${recommendation}-${index}`}
+                              className="text-slate-300 text-xs"
+                            >
+                              • {recommendation}
+                            </li>
+                          ),
+                        )}
+                      </ul>
+                    </div>
+                  )}
+              </div>
+            )}
           </form>
         </section>
 
-        {/* Previous Patients Section */}
+        {/* Previous Patients Section where the history of the CHW is displayed*/}
         <section>
           {patients.length > 0 ? (
             <div className="bg-slate-800/40 backdrop-blur-xl border border-slate-700/50 rounded-3xl p-8">
-              <h3 className="text-xl font-bold text-white mb-6">Recent Patient Records</h3>
-              <div className="space-y-4">
-                {patients.map(patient => (
-                  <div key={patient.id} className="bg-slate-900/50 border border-slate-700 rounded-xl p-4 hover:border-teal-400/30 transition">
-                    <div className="flex justify-between items-start mb-2">
-                      <h4 className="text-white font-semibold">{patient.fullName}</h4>
+              <h3 className="text-xl font-bold text-white mb-6 flex items-center">
+                <History size={20} className="mr-2 text-teal-400" />
+                Recent Patient Records
+              </h3>
+              <div className="space-y-4 max-h-150 overflow-y-auto pr-2">
+                {patients.map((patient) => (
+                  <div
+                    key={patient.id}
+                    className="bg-slate-900/50 border border-slate-700 rounded-2xl p-5 hover:border-teal-400/50 transition-all hover:bg-slate-900/70"
+                  >
+                    {/* Header with name and severity */}
+                    <div className="flex justify-between items-start mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-teal-400/20 flex items-center justify-center border border-teal-400/30">
+                          <User size={18} className="text-teal-400" />
+                        </div>
+                        <div>
+                          <h4 className="text-white font-bold text-base">
+                            {patient.fullName}
+                          </h4>
+                          <p className="text-slate-400 text-xs">
+                            Age: {patient.age || "N/A"} years
+                          </p>
+                        </div>
+                      </div>
                       <StatusBadge status={patient.status} />
                     </div>
-                    <p className="text-teal-400 text-sm mb-2">{patient.diagnosis}</p>
-                    <p className="text-slate-400 text-xs">{patient.timestamp}</p>
+
+                    {/* Condition and Diagnosis */}
+                    <div className="space-y-3 mb-3">
+                      <div className="flex items-start gap-2">
+                        <Stethoscope
+                          size={14}
+                          className="text-amber-400 mt-1 shrink-0"
+                        />
+                        <div className="flex-1">
+                          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                            Condition/Diagnosis
+                          </p>
+                          <p className="text-teal-400 font-semibold text-sm">
+                            {patient.diagnosis || patient.symptoms}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Medical History */}
+                      {patient.history && (
+                        <div className="flex items-start gap-2">
+                          <History
+                            size={14}
+                            className="text-blue-400 mt-1 shrink-0"
+                          />
+                          <div className="flex-1">
+                            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                              Medical History
+                            </p>
+                            <p className="text-slate-300 text-xs">
+                              {patient.history}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Ward Location */}
+                      <div className="flex items-start gap-2">
+                        <MapPin
+                          size={14}
+                          className="text-purple-400 mt-1 shrink-0"
+                        />
+                        <div className="flex-1">
+                          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                            Ward Location
+                          </p>
+                          <p className="text-purple-300 font-medium text-sm">
+                            {patient.ward || "Not Assigned"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Timestamp */}
+                    <p className="text-slate-500 text-[11px] pt-2 border-t border-slate-700/50">
+                      <span className="font-bold">Recorded:</span>{" "}
+                      {patient.timestamp || new Date().toLocaleString()}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -163,7 +396,9 @@ const CHW = ({ onAnalyze, patients = [] }) => {
                 <ClipboardList size={32} className="text-slate-500" />
               </div>
               <h3 className="text-white font-semibold mb-2">No Records Yet</h3>
-              <p className="text-slate-400 text-center text-sm">Patient diagnoses will appear here after analysis</p>
+              <p className="text-slate-400 text-center text-sm">
+                Patient diagnoses will appear here after analysis
+              </p>
             </div>
           )}
         </section>

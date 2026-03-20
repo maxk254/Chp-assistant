@@ -12,8 +12,10 @@ function Home() {
   const [patients, setPatients] = useState([]);
   const [analysisResults, setAnalysisResults] = useState(null);
   const [showResults, setShowResults] = useState(false);
+  const [formData, setFormData] = useState(null);
 
   const handleAnalyze = (data) => {
+    setFormData(data);
     const mockResults = {
       diagnosis: "Suspected Malaria",
       confidence: "92%",
@@ -31,9 +33,13 @@ function Home() {
     setShowResults(true);
   };
 
-  const handleSavePatient = (data) => {
+  const handleSavePatient = () => {
     const newPatient = {
-      ...data,
+      fullName: formData?.fullName || "Unknown",
+      age: formData?.age || "N/A",
+      ward: formData?.ward || "Not assigned",
+      symptoms: formData?.symptoms || "Not recorded",
+      history: formData?.history || "No history",
       id: Date.now(),
       diagnosis: analysisResults?.diagnosis || "Pending",
       facility: analysisResults?.recommendedFacility || "Not assigned",
@@ -43,6 +49,7 @@ function Home() {
     setPatients([newPatient, ...patients]);
     setShowResults(false);
     setAnalysisResults(null);
+    setFormData(null);
   };
 
   const handleBack = () => {
@@ -84,7 +91,11 @@ function Home() {
                   {analysisResults.recommendedFacility}
                 </p>
                 <p
-                  className={`text-sm mt-2 ${analysisResults.emergencyLevel === "HIGH" ? "text-red-400" : "text-amber-400"}`}
+                  className={`text-sm mt-2 ${
+                    analysisResults.emergencyLevel === "HIGH"
+                      ? "text-red-400"
+                      : "text-amber-400"
+                  }`}
                 >
                   Emergency Level: {analysisResults.emergencyLevel}
                 </p>
@@ -114,8 +125,8 @@ function Home() {
             </div>
 
             <button
-              onClick={() => handleSavePatient({})}
-              className="w-full bg-linear-to-r from-emerald-500 to-teal-400 text-white font-bold py-3 rounded-xl hover:shadow-lg transition"
+              onClick={() => handleSavePatient()}
+              className="w-full bg-gradient-to-r from-emerald-500 to-teal-400 text-white font-bold py-3 rounded-xl hover:shadow-lg transition"
             >
               Save Patient Record & Refer
             </button>
