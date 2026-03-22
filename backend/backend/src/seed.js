@@ -1,10 +1,10 @@
 import dotenv from 'dotenv'
 dotenv.config();
-
+import bcrypt from 'bcryptjs';
 import mongoose from 'mongoose';
 import Facility from './models/Facility.js';
 import Chp from './models/Chp.js';
-
+import User from './models/User.js';
 await mongoose.connect(process.env.MONGODB_URI);
 console.log('Connected');
 
@@ -91,6 +91,21 @@ await Chp.insertMany([
   },
 ]);
 console.log('Chps seeded');
+
+// supervisor login
+const password = await bcrypt.hash("admin123", 10);
+await User.findOneAndUpdate(
+  { email: "supervisor@test.com" },
+  {
+    name: "Test Supervisor",
+    email: "supervisor@test.com",
+    role: "supervisor",
+    password,
+    phone: "+254700000000",
+  },
+  { upsert: true, new: true },
+);
+console.log("✅ Supervisor: supervisor@test.com / admin123");
 
 await mongoose.disconnect();
 console.log('seed complete');
