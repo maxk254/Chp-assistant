@@ -10,7 +10,7 @@ export const setToken = (token) => localStorage.setItem(TOKEN_KEY, token);
 
 export const clearToken = () => localStorage.removeItem(TOKEN_KEY);
 
-// ── User ───────────────────────────────────────────────
+//  User
 export const getUser = () => {
   const raw = localStorage.getItem(USER_KEY);
   try {
