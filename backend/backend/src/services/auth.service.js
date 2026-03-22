@@ -112,7 +112,7 @@ const authService = {
         email,
         password: hashedPassword,
       });
-      await user.save();
+      await user.save(); // hits and saves in mongoDB
 
       return { message: "User registered successfully", status: 200 };
     } catch (err) {
