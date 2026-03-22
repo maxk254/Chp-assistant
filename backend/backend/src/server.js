@@ -14,7 +14,7 @@ import alertsRoutes from "./routes/alerts.js";
 import facilitiesRoutes from "./routes/facilities.js";
 import statsRoute from "./routes/stats.js";
 import whatsappRoutes from "./routes/whatsapp.js";
-
+import { errorHandler } from "./middleware/errorHandler.js";
 // Importing auth route
 import authRoutes from "./routes/auth.js"; // <-- new line, make sure this file exists
 
@@ -66,3 +66,7 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Backend running on port ${PORT}`);
 });
+
+
+// error handling to catch al, the error
+app.use(errorHandler);
